@@ -14,22 +14,21 @@ func TestPethDetection(t *testing.T) {
 		name   string
 		status string
 		admin  bool
-		up     bool
 		want   int
 	}{
-		{name: "disabled", status: "delivering", admin: false, up: true, want: 1},
-		{name: "delivering", status: "delivering_power", admin: true, up: true, want: 3},
-		{name: "searching", status: "searching", admin: true, up: false, want: 2},
-		{name: "empty status", status: "", admin: true, up: true, want: 2},
-		{name: "fault", status: "fault", admin: true, up: true, want: 4},
-		{name: "other", status: "idle", admin: true, up: true, want: 2},
+		{name: "disabled", status: "delivering", admin: false, want: 1},
+		{name: "delivering", status: "delivering_power", admin: true, want: 3},
+		{name: "searching", status: "searching", admin: true, want: 2},
+		{name: "empty status", status: "", admin: true, want: 2},
+		{name: "fault", status: "fault", admin: true, want: 4},
+		{name: "other", status: "idle", admin: true, want: 2},
 	}
 
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := pethDetection(tt.status, tt.admin, tt.up); got != tt.want {
+			if got := pethDetection(tt.status, tt.admin); got != tt.want {
 				t.Fatalf("pethDetection = %d, want %d", got, tt.want)
 			}
 		})

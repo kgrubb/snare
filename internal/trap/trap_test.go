@@ -137,7 +137,7 @@ func TestDiffAndSend(t *testing.T) {
 		}
 	})
 
-	t.Run("bad target", func(t *testing.T) {
+	t.Run("bad target keeps prev for retry", func(t *testing.T) {
 		t.Parallel()
 		cfg := &config.Config{
 			Community: "public",
@@ -146,5 +146,8 @@ func TestDiffAndSend(t *testing.T) {
 		w := New(cfg, agent.NewStore())
 		w.prev[1] = true
 		w.DiffAndSend(&netgear.Snapshot{Ports: []netgear.Port{{Index: 1, Up: false}}})
+		if !w.prev[1] {
+			t.Fatal("prev must stay true when send fails so the trap can retry")
+		}
 	})
 }

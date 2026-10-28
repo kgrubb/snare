@@ -30,8 +30,11 @@ func (w *Watcher) DiffAndSend(snap *netgear.Snapshot) {
 	}
 	for _, p := range snap.Ports {
 		was, seen := w.prev[p.Index]
-		w.prev[p.Index] = p.Up
-		if !seen || was == p.Up {
+		if !seen {
+			w.prev[p.Index] = p.Up
+			continue
+		}
+		if was == p.Up {
 			continue
 		}
 		trapOID := "1.3.6.1.6.3.1.1.5.3" // linkDown
@@ -40,7 +43,9 @@ func (w *Watcher) DiffAndSend(snap *netgear.Snapshot) {
 		}
 		if err := w.send(trapOID, p.Index); err != nil {
 			log.Printf("trap port %d: %v", p.Index, err)
+			continue
 		}
+		w.prev[p.Index] = p.Up
 	}
 }
 

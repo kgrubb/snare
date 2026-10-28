@@ -73,8 +73,6 @@ func buildOIDs(store *Store, cfg *config.Config) []*gosnmpd.PDUValueControlItem 
 			}
 			return netgear.Port{Index: idx}
 		}
-		base := fmt.Sprintf("%s.%d", oidIfEntry, idx)
-		xbase := fmt.Sprintf("%s.%d", oidIfXEntry, idx)
 		items = append(items,
 			intOID(fmt.Sprintf("%s.1.%d", oidIfEntry, idx), func() int { return idx }),
 			strOID(fmt.Sprintf("%s.2.%d", oidIfEntry, idx), func() string { return fmt.Sprintf("Port %d", idx) }),
@@ -108,7 +106,7 @@ func buildOIDs(store *Store, cfg *config.Config) []*gosnmpd.PDUValueControlItem 
 				return 2
 			}),
 			intOID(fmt.Sprintf("%s.6.1.%d", oidPethPseEntry, idx), func() int {
-				return pethDetection(port().PoEStatus, port().PoEAdmin, port().Up)
+				return pethDetection(port().PoEStatus, port().PoEAdmin)
 			}),
 			intOID(fmt.Sprintf("%s.10.1.%d", oidPethPseEntry, idx), func() int {
 				if port().PoEClass > 0 {
@@ -117,13 +115,11 @@ func buildOIDs(store *Store, cfg *config.Config) []*gosnmpd.PDUValueControlItem 
 				return 1
 			}),
 		)
-		_ = base
-		_ = xbase
 	}
 	return items
 }
 
-func pethDetection(status string, admin, up bool) int {
+func pethDetection(status string, admin bool) int {
 	// RFC 3621: disabled(1) searching(2) deliveringPower(3) fault(4) test(5) otherFault(6)
 	if !admin {
 		return 1
@@ -132,9 +128,6 @@ func pethDetection(status string, admin, up bool) int {
 	case strings.Contains(status, "deliver"):
 		return 3
 	case strings.Contains(status, "search"), status == "":
-		if up {
-			return 2
-		}
 		return 2
 	case strings.Contains(status, "fault"):
 		return 4
