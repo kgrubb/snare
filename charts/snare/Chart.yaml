@@ -19,7 +19,7 @@ keywords:
 annotations:
   artifacthub.io/category: monitoring
   artifacthub.io/containsSecurityUpdates: "false"
-  artifacthub.io/license: AGPL-3.0-only
+  artifacthub.io/license: Apache-2.0
   artifacthub.io/images: |
     - name: snare
       image: ghcr.io/kgrubb/snare:1.0.1
