@@ -24,6 +24,9 @@ jobs:
       - uses: googleapis/release-please-action@v5
         id: release
         with:
+          # PAT/App token so the release PR is not authored by github-actions[bot].
+          # Bot-authored PRs need a maintainer click to run CI on every update.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
