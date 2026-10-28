@@ -1,0 +1,27 @@
+listen: ":1161"
+community: "public"
+poll: 30s
+
+switch:
+  url: "http://192.168.1.205"
+  password: "changeme"
+  ports: 8
+  poe_budget_watts: 62
+
+# Optional SNMPv3 (leave username empty to disable)
+snmpv3:
+  username: ""
+  auth_pass: ""
+  priv_pass: ""
+  auth_proto: SHA
+  priv_proto: AES
+
+traps:
+  enabled: false
+  targets:
+    - "192.168.1.10:162"
+
+sys:
+  name: "gs308ep"
+  contact: "ops@example.com"
+  location: "homelab"

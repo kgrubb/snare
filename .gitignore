@@ -1,0 +1,14 @@
+/dist/
+/bin/
+/snare
+*.exe
+*.test
+*.out
+.env
+.env.*
+config.yaml
+!.goreleaser.yaml
+.idea/
+.vscode/
+*.swp
+coverage.*
