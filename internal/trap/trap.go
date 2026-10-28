@@ -41,7 +41,7 @@ func (w *Watcher) DiffAndSend(snap *netgear.Snapshot) {
 		if p.Up {
 			trapOID = "1.3.6.1.6.3.1.1.5.4" // linkUp
 		}
-		if err := w.send(trapOID, p.Index); err != nil {
+		if err := w.send(trapOID, p.Index, p.Up); err != nil {
 			log.Printf("trap port %d: %v", p.Index, err)
 			continue
 		}
@@ -49,13 +49,14 @@ func (w *Watcher) DiffAndSend(snap *netgear.Snapshot) {
 	}
 }
 
-func (w *Watcher) send(trapOID string, ifIndex int) error {
+func (w *Watcher) send(trapOID string, ifIndex int, up bool) error {
+	status := operStatus(up)
 	pdu := []gosnmp.SnmpPDU{
 		{Name: "1.3.6.1.2.1.1.3.0", Type: gosnmp.TimeTicks, Value: w.store.UpTimeTicks()},
 		{Name: "1.3.6.1.6.3.1.1.4.1.0", Type: gosnmp.ObjectIdentifier, Value: trapOID},
 		{Name: "1.3.6.1.2.1.2.2.1.1." + strconv.Itoa(ifIndex), Type: gosnmp.Integer, Value: ifIndex},
-		{Name: "1.3.6.1.2.1.2.2.1.7." + strconv.Itoa(ifIndex), Type: gosnmp.Integer, Value: operStatus(w.prev[ifIndex])},
-		{Name: "1.3.6.1.2.1.2.2.1.8." + strconv.Itoa(ifIndex), Type: gosnmp.Integer, Value: operStatus(w.prev[ifIndex])},
+		{Name: "1.3.6.1.2.1.2.2.1.7." + strconv.Itoa(ifIndex), Type: gosnmp.Integer, Value: status},
+		{Name: "1.3.6.1.2.1.2.2.1.8." + strconv.Itoa(ifIndex), Type: gosnmp.Integer, Value: status},
 	}
 	for _, target := range w.cfg.Traps.Targets {
 		host, port, err := splitHostPort(target)
