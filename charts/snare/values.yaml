@@ -55,7 +55,8 @@ config:
     contact: ""
     location: ""
 
-# existingSecret must contain key config.yaml. Mutually exclusive with inline config.
+# existingSecret must contain key config.yaml with listen set to
+# ":<service.targetPort>" (default ":1161"). Mutually exclusive with inline config.
 existingSecret: ""
 
 resources: {}

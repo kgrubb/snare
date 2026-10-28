@@ -14,3 +14,7 @@ address, not the Plus switch.
 {{- end }}
 
 Config is mounted from Secret {{ include "snare.secretName" . }} (key config.yaml).
+{{- if .Values.existingSecret }}
+That Secret must set listen to {{ printf ":%v" .Values.service.targetPort | quote }}
+(service.targetPort).
+{{- end }}

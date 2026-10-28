@@ -71,19 +71,23 @@ images.
 ## Kubernetes
 
 ```bash
+kubectl -n snare create secret generic snare-config \
+  --from-file=config.yaml=./config.yaml \
+  --dry-run=client -o yaml | kubectl apply -f -
+
 helm repo add kgrubb-snare https://kgrubb.github.io/snare
 helm repo update
 helm install snare kgrubb-snare/snare -n snare --create-namespace \
-  --set config.switch.url=http://192.168.1.205 \
-  --set config.switch.password=changeme
+  --set existingSecret=snare-config
 ```
 
-Or from a checkout: `helm install snare ./charts/snare -f my-values.yaml`.
+Or from a checkout: `helm install snare ./charts/snare --set existingSecret=snare-config`.
 
 The chart ships a UDP LoadBalancer on port 161. The pod listens on 1161
-(distroless nonroot cannot bind privileged ports). Point your NMS at the
-Service IP, not the Plus switch. Prefer `existingSecret` with a `config.yaml`
-key in GitOps instead of inline passwords.
+(distroless nonroot cannot bind privileged ports), so `config.yaml` must set
+`listen: ":1161"` (or match `service.targetPort`). Point your NMS at the
+Service IP, not the Plus switch. Bump `charts/snare/Chart.yaml` `version` on
+every chart change so chart-releaser publishes it.
 
 ## Scope
 

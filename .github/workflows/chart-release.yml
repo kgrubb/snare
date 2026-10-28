@@ -65,6 +65,8 @@ jobs:
           charts_dir: charts
           config: cr.yaml
           packages_with_index: true
+          # Keep app tags (vX.Y.Z) as GitHub Latest. Chart tags are snare-A.B.C.
+          mark_as_latest: false
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GNUPGHOME: ${{ env.GNUPGHOME }}
@@ -78,4 +80,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x scripts/sync-gh-pages.sh
-          ./scripts/sync-gh-pages.sh static
+          ./scripts/sync-gh-pages.sh

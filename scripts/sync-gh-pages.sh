@@ -2,9 +2,7 @@
 set -euo pipefail
 
 REPO="${GITHUB_REPOSITORY:?GITHUB_REPOSITORY required}"
-REPO_URL="${REPO_URL:-https://kgrubb.github.io/snare}"
 TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
-MODE="${1:-static}"
 
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
@@ -20,14 +18,6 @@ for tag in $(gh release list --repo "$REPO" --limit 100 --json tagName -q '.[].t
   gh release download "$tag" --repo "$REPO" -D . --pattern '*.prov' --clobber 2>/dev/null || true
 done
 
-if [[ "$MODE" == "full" ]]; then
-  for tag in $(gh release list --repo "$REPO" --limit 100 --json tagName -q '.[].tagName'); do
-    gh release download "$tag" --repo "$REPO" -D . --pattern '*.tgz' --clobber
-  done
-  helm repo index . --url "$REPO_URL"
-fi
-
-cd "$work/gh-pages"
 git add -A
 git diff --staged --quiet && exit 0
 git -c user.name="github-actions[bot]" \
