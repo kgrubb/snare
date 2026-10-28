@@ -69,7 +69,7 @@ func (w *Watcher) send(trapOID string, ifIndex int) error {
 			return err
 		}
 		_, err = g.SendTrap(gosnmp.SnmpTrap{Variables: pdu})
-		g.Conn.Close()
+		_ = g.Conn.Close()
 		if err != nil {
 			return err
 		}
