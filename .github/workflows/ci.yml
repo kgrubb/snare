@@ -16,6 +16,12 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Go badge
+        run: |
+          ver=$(awk '/^go /{print $2; exit}' go.mod)
+          curl -fsSL "https://img.shields.io/badge/go-${ver}-00ADD8.svg" -o /tmp/go.svg
+          diff -q /tmp/go.svg badges/go.svg
+
       - name: Tidy
         run: |
           go mod tidy
