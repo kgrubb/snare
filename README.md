@@ -9,7 +9,7 @@
   <a href="https://github.com/kgrubb/snare/actions/workflows/ci.yml"><img src="https://github.com/kgrubb/snare/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/kgrubb/snare/actions/workflows/release.yml"><img src="https://github.com/kgrubb/snare/actions/workflows/release.yml/badge.svg" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="AGPL-3.0" /></a>
-  <a href="go.mod"><img src="badges/go.svg" alt="Go" /></a>
+  <img src="https://img.shields.io/github/go-mod/go-version/kgrubb/snare" alt="Go" />
   <a href="https://github.com/kgrubb/snare/pkgs/container/snare"><img src="https://img.shields.io/badge/ghcr-snare-blue.svg" alt="GHCR" /></a>
 </p>
 
