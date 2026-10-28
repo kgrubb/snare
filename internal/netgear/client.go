@@ -105,8 +105,8 @@ func (c *Client) login() error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-	io.Copy(io.Discard, resp.Body)
+	defer func() { _ = resp.Body.Close() }()
+	_, _ = io.Copy(io.Discard, resp.Body)
 	u, _ := url.Parse(c.base)
 	for _, ck := range c.http.Jar.Cookies(u) {
 		if ck.Name == "SID" || ck.Name == "GS108SID" {
@@ -121,7 +121,7 @@ func (c *Client) get(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err

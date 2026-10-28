@@ -1,15 +1,23 @@
-# snare
+<h1 align="center">snare</h1>
 
-**SNMP facade for Netgear Plus / Easy Smart switches** (GS308EP and kin).
+<p align="center">
+  <strong>SNMP facade for Netgear Plus / Easy Smart switches</strong><br />
+  GS308EP and kin.
+</p>
 
-These switches expose a web UI and no SNMP agent. snare scrapes that UI the
-same way [py-netgear-plus](https://github.com/foxey/py-netgear-plus) and
-ProSAFE exporters do, then serves a real SNMP agent so NMS tools can poll and
-receive traps.
+<p align="center">
+  <a href="https://github.com/kgrubb/snare/actions/workflows/ci.yml"><img src="https://github.com/kgrubb/snare/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://github.com/kgrubb/snare/actions/workflows/release.yml"><img src="https://github.com/kgrubb/snare/actions/workflows/release.yml/badge.svg" alt="Release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="AGPL-3.0" /></a>
+  <img src="https://img.shields.io/github/go-mod/go-version/kgrubb/snare" alt="Go" />
+  <a href="https://github.com/kgrubb/snare/pkgs/container/snare"><img src="https://img.shields.io/badge/ghcr-snare-blue.svg" alt="GHCR" /></a>
+</p>
 
-License: [AGPL-3.0](LICENSE).
+---
 
-## Speak
+These switches ship a web UI and no SNMP agent. snare scrapes that UI the same way [py-netgear-plus](https://github.com/foxey/py-netgear-plus) and ProSAFE exporters do, then serves a real SNMP agent so your NMS can poll and receive traps.
+
+## Protocols
 
 | Protocol | Support |
 |---|---|
@@ -20,8 +28,7 @@ License: [AGPL-3.0](LICENSE).
 
 ## MIB layout
 
-Mirrors what Netgear Smart Managed Pro (e.g. GS310TP) exposes for the data we
-can actually scrape:
+Mirrors what Netgear Smart Managed Pro (for example GS310TP) exposes for the data we can scrape:
 
 | MIB | OID | Content |
 |---|---|---|
@@ -31,7 +38,7 @@ can actually scrape:
 
 `sysObjectID` is `1.3.6.1.4.1.4526.100.308` (Netgear enterprise, Plus-facade leaf).
 
-## Run
+## Quick start
 
 ```bash
 cp config.example.yaml config.yaml
@@ -53,13 +60,15 @@ docker run --rm -p 161:161/udp \
   ghcr.io/kgrubb/snare:latest
 ```
 
-Image is `gcr.io/distroless/static-debian12:nonroot`.
+Image base: `gcr.io/distroless/static-debian12:nonroot`.
 
-## Releases
+[Release Please](https://github.com/googleapis/release-please) opens a release PR
+from conventional commits (semver + `CHANGELOG.md`). Merging that PR tags
+`vX.Y.Z` and writes the GitHub release notes. GoReleaser then renames the
+release to `snare-X.Y.Z`, attaches binaries, and publishes multi-arch GHCR
+images.
 
-Tagged `v*` pushes run GoReleaser: multi-arch binaries + GHCR images.
-
-## Kubernetes sketch
+## Kubernetes
 
 ```yaml
 apiVersion: apps/v1
@@ -102,10 +111,10 @@ spec:
       protocol: UDP
 ```
 
-Point your Netgear NMS / snmp reader at the Service IP, not the Plus switch.
+Point your NMS at the Service IP, not the Plus switch.
 
 ## Scope
 
-PoC targets **GS308EP** (GS30xEP CGI: `login.cgi`, `dashboard.cgi`,
-`portStatistics.cgi`, `PoEPortConfig.cgi`, `getPoePortStatus.cgi`). Other Plus
-models may work if they share that UI generation.
+PoC target is **GS308EP** (GS30xEP CGI: `login.cgi`, `dashboard.cgi`, `portStatistics.cgi`, `PoEPortConfig.cgi`, `getPoePortStatus.cgi`). Other Plus models may work if they share that UI generation.
+
+License: [AGPL-3.0](LICENSE).
