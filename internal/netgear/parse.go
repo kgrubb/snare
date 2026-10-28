@@ -10,9 +10,7 @@ import (
 
 var (
 	reRand     = regexp.MustCompile(`(?i)id=["']rand["'][^>]*value=["']([^"']+)["']|value=["']([^"']+)["'][^>]*id=["']rand["']`)
-	reHash     = regexp.MustCompile(`(?i)name=["']hash["'][^>]*value=["']([^"']+)["']|value=["']([^"']+)["'][^>]*name=["']hash["']`)
 	reName     = regexp.MustCompile(`(?is)id=["']switch_name["'][^>]*>([^<]*)`)
-	reSpeed    = regexp.MustCompile(`(?i)class=["']Speed["'][^>]*value=["']([^"']*)["']`)
 	reLinked   = regexp.MustCompile(`(?i)class=["']LinkedSpeed["'][^>]*value=["']([^"']*)["']`)
 	reShowPort = regexp.MustCompile(`(?is)name=["']isShowPot(\d+)["'][^>]*>[\s\S]*?<[^>]+>([^<]*)</`)
 	reInputs   = regexp.MustCompile(`(?i)<input[^>]*value=["']([^"']*)["']`)
@@ -39,7 +37,6 @@ func firstGroup(re *regexp.Regexp, s string) string {
 }
 
 func parseRand(body string) string { return firstGroup(reRand, body) }
-func parseHash(body string) string { return firstGroup(reHash, body) }
 
 func parseTitleModel(body string) string {
 	z := html.NewTokenizer(strings.NewReader(body))
@@ -78,7 +75,6 @@ func parsePortStatus(body string, n int) []Port {
 	ports := make([]Port, n)
 	for i := range ports {
 		ports[i].Index = i + 1
-		ports[i].PoEAdmin = true
 	}
 	for _, m := range reShowPort.FindAllStringSubmatch(body, -1) {
 		idx, _ := strconv.Atoi(m[1])
@@ -95,7 +91,6 @@ func parsePortStatus(body string, n int) []Port {
 			ports[i].Up = true
 		}
 	}
-	_ = reSpeed
 	return ports
 }
 

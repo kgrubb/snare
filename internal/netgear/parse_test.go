@@ -5,32 +5,28 @@ import (
 	"testing"
 )
 
-func TestFirstGroupAndAuthFields(t *testing.T) {
+func TestParseRand(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name string
 		body string
 		rand string
-		hash string
 	}{
 		{
 			name: "id then value",
-			body: `<input id="rand" value="r1"><input name="hash" value="h1">`,
+			body: `<input id="rand" value="r1">`,
 			rand: "r1",
-			hash: "h1",
 		},
 		{
 			name: "value then id",
-			body: `<input value="r2" id="rand"><input value="h2" name="hash">`,
+			body: `<input value="r2" id="rand">`,
 			rand: "r2",
-			hash: "h2",
 		},
 		{
 			name: "missing",
 			body: `<html></html>`,
 			rand: "",
-			hash: "",
 		},
 	}
 
@@ -40,9 +36,6 @@ func TestFirstGroupAndAuthFields(t *testing.T) {
 			t.Parallel()
 			if got := parseRand(tt.body); got != tt.rand {
 				t.Fatalf("parseRand = %q, want %q", got, tt.rand)
-			}
-			if got := parseHash(tt.body); got != tt.hash {
-				t.Fatalf("parseHash = %q, want %q", got, tt.hash)
 			}
 		})
 	}
@@ -142,8 +135,8 @@ func TestParsePortStatus(t *testing.T) {
 	if ports[1].Up || ports[1].SpeedMbps != 0 {
 		t.Fatalf("port2 = %+v", ports[1])
 	}
-	if !ports[0].PoEAdmin {
-		t.Fatal("PoEAdmin default should be true")
+	if ports[0].PoEAdmin {
+		t.Fatal("PoEAdmin default should be false until PoE config is scraped")
 	}
 }
 

@@ -2,13 +2,34 @@ package trap
 
 import (
 	"net"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/gosnmp/gosnmp"
 	"github.com/kgrubb/snare/internal/agent"
 	"github.com/kgrubb/snare/internal/config"
 	"github.com/kgrubb/snare/internal/netgear"
 )
+
+func trapOperStatus(t *testing.T, raw []byte) int {
+	t.Helper()
+	pkt, err := (&gosnmp.GoSNMP{}).SnmpDecodePacket(raw)
+	if err != nil {
+		t.Fatalf("decode trap: %v", err)
+	}
+	for _, v := range pkt.Variables {
+		if strings.Contains(v.Name, "1.3.6.1.2.1.2.2.1.8.") {
+			n, ok := v.Value.(int)
+			if !ok {
+				t.Fatalf("ifOperStatus type %T", v.Value)
+			}
+			return n
+		}
+	}
+	t.Fatal("ifOperStatus missing")
+	return 0
+}
 
 func TestOperStatus(t *testing.T) {
 	t.Parallel()
@@ -125,19 +146,22 @@ func TestDiffAndSend(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected trap datagram: %v", err)
 		}
-		if n == 0 {
-			t.Fatal("empty trap")
+		if got := trapOperStatus(t, buf[:n]); got != 1 {
+			t.Fatalf("linkUp ifOperStatus = %d, want 1", got)
 		}
 
-		// linkDown path
 		w.DiffAndSend(&netgear.Snapshot{Ports: []netgear.Port{{Index: 2, Up: false}}})
 		_ = pc.SetReadDeadline(time.Now().Add(2 * time.Second))
-		if _, _, err := pc.ReadFrom(buf); err != nil {
+		n, _, err = pc.ReadFrom(buf)
+		if err != nil {
 			t.Fatalf("expected linkDown trap: %v", err)
+		}
+		if got := trapOperStatus(t, buf[:n]); got != 2 {
+			t.Fatalf("linkDown ifOperStatus = %d, want 2", got)
 		}
 	})
 
-	t.Run("bad target", func(t *testing.T) {
+	t.Run("bad target keeps prev for retry", func(t *testing.T) {
 		t.Parallel()
 		cfg := &config.Config{
 			Community: "public",
@@ -146,5 +170,8 @@ func TestDiffAndSend(t *testing.T) {
 		w := New(cfg, agent.NewStore())
 		w.prev[1] = true
 		w.DiffAndSend(&netgear.Snapshot{Ports: []netgear.Port{{Index: 1, Up: false}}})
+		if !w.prev[1] {
+			t.Fatal("prev must stay true when send fails so the trap can retry")
+		}
 	})
 }
