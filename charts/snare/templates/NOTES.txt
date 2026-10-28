@@ -1,0 +1,16 @@
+snare is listening for SNMP on the Service below. Point your NMS at that
+address, not the Plus switch.
+
+{{- if contains "LoadBalancer" .Values.service.type }}
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "snare.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  echo "snmpwalk -v2c -c {{ .Values.config.community }} $SERVICE_IP:{{ .Values.service.port }} 1.3.6.1.2.1.1"
+{{- else if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "snare.fullname" . }} -o jsonpath='{.spec.ports[0].nodePort}')
+  export NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}')
+  echo "snmpwalk -v2c -c {{ .Values.config.community }} $NODE_IP:$NODE_PORT 1.3.6.1.2.1.1"
+{{- else }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "snare.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+  echo "snmpwalk -v2c -c {{ .Values.config.community }} 127.0.0.1:{{ .Values.service.port }} 1.3.6.1.2.1.1"
+{{- end }}
+
+Config is mounted from Secret {{ include "snare.secretName" . }} (key config.yaml).

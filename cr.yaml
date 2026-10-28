@@ -1,0 +1,8 @@
+owner: kgrubb
+git-repo: snare
+package-path: .cr-release-packages
+charts-repo: https://kgrubb.github.io/snare
+pages-branch: gh-pages
+pages-index-path: index.yaml
+packages-with-index: true
+release-notes-file: RELEASE-NOTES.md

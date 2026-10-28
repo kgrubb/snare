@@ -1,0 +1,81 @@
+name: chart-release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "charts/**"
+      - "cr.yaml"
+      - "pages/**"
+      - "scripts/sync-gh-pages.sh"
+      - ".github/workflows/chart-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: chart-release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - uses: azure/setup-helm@v5
+
+      - name: Import GPG key
+        id: gpg
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          if [[ -z "${GPG_PRIVATE_KEY}" ]]; then
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "GPG_PRIVATE_KEY not set. Publishing unsigned charts."
+            exit 0
+          fi
+          gpg_dir="$RUNNER_TEMP/gpg"
+          mkdir -p "$gpg_dir"
+          chmod 700 "$gpg_dir"
+          export GNUPGHOME="$gpg_dir"
+          echo "GNUPGHOME=$gpg_dir" >> "$GITHUB_ENV"
+          printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --list-secret-keys --keyid-format long
+          gpg --list-secret-keys --keyid-format long | grep -q "CA999A73395F45FD"
+          gpg --export-secret-keys AFB495384FDAD4EDC0EBF8FECA999A73395F45FD > "$gpg_dir/secring.gpg"
+          test -s "$gpg_dir/secring.gpg"
+          printf '\n' > "$gpg_dir/passphrase"
+          echo "CR_KEYRING=$gpg_dir/secring.gpg" >> "$GITHUB_ENV"
+          echo "CR_PASSPHRASE_FILE=$gpg_dir/passphrase" >> "$GITHUB_ENV"
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Publish charts
+        uses: helm/chart-releaser-action@v1.7.0
+        with:
+          charts_dir: charts
+          config: cr.yaml
+          packages_with_index: true
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GNUPGHOME: ${{ env.GNUPGHOME }}
+          CR_SIGN: ${{ steps.gpg.outputs.signed }}
+          CR_KEY: 8471701+kgrubb@users.noreply.github.com
+          CR_KEYRING: ${{ env.CR_KEYRING }}
+          CR_PASSPHRASE_FILE: ${{ env.CR_PASSPHRASE_FILE }}
+
+      - name: Sync gh-pages assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/sync-gh-pages.sh
+          ./scripts/sync-gh-pages.sh static

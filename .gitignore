@@ -12,3 +12,5 @@ config.yaml
 .vscode/
 *.swp
 coverage.*
+.cr-release-packages/
+.cr-index/

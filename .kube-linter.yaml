@@ -1,0 +1,6 @@
+checks:
+  exclude:
+    - "unset-cpu-requirements"
+    - "unset-memory-requirements"
+    - "no-readiness-probe"
+    - "no-liveness-probe"

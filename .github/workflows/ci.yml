@@ -45,3 +45,37 @@ jobs:
 
       - name: Build
         run: go build -o /tmp/snare ./cmd/snare
+
+  chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: azure/setup-helm@v5
+
+      - name: Lint YAML
+        run: |
+          pipx install yamllint
+          yamllint .
+
+      - name: Shellcheck
+        run: shellcheck scripts/*.sh
+
+      - name: Lint chart
+        run: helm lint charts/snare --strict -f ci/values.yaml
+
+      - name: Render chart
+        run: |
+          helm template test charts/snare -f ci/values.yaml
+          helm template test charts/snare -f ci/values.yaml \
+            --set existingSecret=snare-config \
+            --set config.switch.url= \
+            --set config.switch.password= \
+            --set service.type=ClusterIP \
+            --set 'resources.requests.memory=64Mi'
+
+      - name: Lint manifests
+        uses: stackrox/kube-linter-action@v1
+        with:
+          directory: charts/snare
+          config: .kube-linter.yaml

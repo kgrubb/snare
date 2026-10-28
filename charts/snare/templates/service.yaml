@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "snare.fullname" . }}
+  labels:
+    {{- include "snare.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  {{- with .Values.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ . }}
+  {{- end }}
+  selector:
+    {{- include "snare.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: snmp
+      port: {{ .Values.service.port }}
+      targetPort: snmp
+      protocol: UDP

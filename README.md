@@ -70,48 +70,20 @@ images.
 
 ## Kubernetes
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: snare
-spec:
-  replicas: 1
-  selector:
-    matchLabels: {app: snare}
-  template:
-    metadata:
-      labels: {app: snare}
-    spec:
-      containers:
-        - name: snare
-          image: ghcr.io/kgrubb/snare:latest
-          args: ["--config", "/config/config.yaml"]
-          ports:
-            - containerPort: 161
-              protocol: UDP
-          volumeMounts:
-            - name: config
-              mountPath: /config
-              readOnly: true
-      volumes:
-        - name: config
-          secret:
-            secretName: snare-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: snare
-spec:
-  type: LoadBalancer
-  selector: {app: snare}
-  ports:
-    - port: 161
-      protocol: UDP
+```bash
+helm repo add kgrubb-snare https://kgrubb.github.io/snare
+helm repo update
+helm install snare kgrubb-snare/snare -n snare --create-namespace \
+  --set config.switch.url=http://192.168.1.205 \
+  --set config.switch.password=changeme
 ```
 
-Point your NMS at the Service IP, not the Plus switch.
+Or from a checkout: `helm install snare ./charts/snare -f my-values.yaml`.
+
+The chart ships a UDP LoadBalancer on port 161. The pod listens on 1161
+(distroless nonroot cannot bind privileged ports). Point your NMS at the
+Service IP, not the Plus switch. Prefer `existingSecret` with a `config.yaml`
+key in GitOps instead of inline passwords.
 
 ## Scope
 

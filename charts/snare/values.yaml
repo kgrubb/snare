@@ -1,0 +1,89 @@
+# Prefer pinned tags (kube-linter blocks :latest).
+image:
+  repository: ghcr.io/kgrubb/snare
+  tag: "1.0.1"
+  digest: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# One replica. Scraped state and trap diffs live in process memory.
+replicaCount: 1
+
+strategy:
+  type: Recreate
+
+serviceAccount:
+  create: true
+  automountServiceAccountToken: false
+  annotations: {}
+  name: ""
+
+# NMS talks to the Service. Container listens on an unprivileged port.
+service:
+  type: LoadBalancer
+  port: 161
+  targetPort: 1161
+  # Local for MetalLB L2 so ARP stays on the node running the pod.
+  externalTrafficPolicy: Local
+  annotations: {}
+
+# Rendered into Secret key config.yaml unless existingSecret is set.
+# Keys match snare's config file. switch.url and switch.password are required
+# when the chart creates the Secret.
+config:
+  listen: ":1161"
+  community: "public"
+  poll: 30s
+  switch:
+    url: ""
+    password: ""
+    ports: 8
+    poe_budget_watts: 62
+  snmpv3:
+    username: ""
+    auth_pass: ""
+    priv_pass: ""
+    auth_proto: SHA
+    priv_proto: AES
+  traps:
+    enabled: false
+    targets: []
+  sys:
+    name: ""
+    contact: ""
+    location: ""
+
+# existingSecret must contain key config.yaml. Mutually exclusive with inline config.
+existingSecret: ""
+
+resources: {}
+
+podAnnotations: {}
+podLabels: {}
+
+# Matches gcr.io/distroless/static-debian12:nonroot.
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+  fsGroup: 65532
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+extraEnv: {}
+extraVolumes: []
+extraVolumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
