@@ -5,99 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>snare Helm Repository</title>
   <style>
-    :root {
-      color-scheme: light dark;
-      --bg: #f6f8fa;
-      --card: #ffffff;
-      --text: #1f2328;
-      --muted: #656d76;
-      --border: #d0d7de;
-      --accent: #0969da;
-      --code-bg: #f6f8fa;
-    }
+    body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    pre { padding: 1rem; overflow-x: auto; background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; }
     @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0d1117;
-        --card: #161b22;
-        --text: #e6edf3;
-        --muted: #8b949e;
-        --border: #30363d;
-        --accent: #58a6ff;
-        --code-bg: #0d1117;
-      }
+      body { background: #0d1117; color: #e6edf3; }
+      pre { background: #161b22; border-color: #30363d; }
+      a { color: #58a6ff; }
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-    }
-    main {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 3rem 1.5rem 4rem;
-    }
-    h1 { margin: 0; font-size: 1.75rem; }
-    p { color: var(--muted); margin: 0.25rem 0 0; }
-    section {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.25rem 1.5rem;
-      margin-bottom: 1rem;
-    }
-    h2 {
-      margin: 0 0 0.75rem;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-    pre {
-      margin: 0;
-      padding: 1rem;
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow-x: auto;
-      font-size: 0.875rem;
-      line-height: 1.45;
-    }
-    ul { margin: 0; padding-left: 1.25rem; }
-    li { margin: 0.35rem 0; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <main>
-    <header>
-      <h1>snare</h1>
-      <p>Helm chart for the Netgear Plus SNMP facade</p>
-    </header>
+  <h1>snare</h1>
+  <p>Helm chart for the Netgear Plus SNMP facade.</p>
 
-    <section>
-      <h2>Add repository</h2>
-      <pre>helm repo add kgrubb-snare https://kgrubb.github.io/snare
+  <h2>Add repository</h2>
+  <pre>helm repo add kgrubb-snare https://kgrubb.github.io/snare
 helm repo update</pre>
-    </section>
 
-    <section>
-      <h2>Install</h2>
-      <pre>helm install snare kgrubb-snare/snare \
-  -n snare --create-namespace \
-  --set config.switch.url=http://192.168.1.205 \
-  --set config.switch.password=changeme</pre>
-    </section>
+  <h2>Install</h2>
+  <pre>kubectl create namespace snare --dry-run=client -o yaml | kubectl apply -f -
+kubectl -n snare create secret generic snare-config \
+  --from-file=config.yaml=./config.yaml \
+  --dry-run=client -o yaml | kubectl apply -f -
 
-    <section>
-      <h2>Repository</h2>
-      <ul>
-        <li><a href="index.yaml">index.yaml</a></li>
-        <li><a href="https://github.com/kgrubb/snare">Source</a></li>
-        <li><a href="https://github.com/kgrubb/snare/pkgs/container/snare">Image</a></li>
-      </ul>
-    </section>
-  </main>
+helm install snare kgrubb-snare/snare -n snare \
+  --set existingSecret=snare-config</pre>
+
+  <h2>Links</h2>
+  <ul>
+    <li><a href="index.yaml">index.yaml</a></li>
+    <li><a href="https://github.com/kgrubb/snare">Source</a></li>
+    <li><a href="https://github.com/kgrubb/snare/pkgs/container/snare">Image</a></li>
+  </ul>
 </body>
 </html>

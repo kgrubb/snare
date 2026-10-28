@@ -82,7 +82,8 @@ helm install snare kgrubb-snare/snare -n snare \
   --set existingSecret=snare-config
 ```
 
-Or from a checkout: `helm install snare ./charts/snare --set existingSecret=snare-config`.
+From a checkout, create the namespace and Secret the same way, then
+`helm install snare ./charts/snare -n snare --set existingSecret=snare-config`.
 
 The chart ships a UDP LoadBalancer on port 161. The pod listens on 1161
 (distroless nonroot cannot bind privileged ports), so `config.yaml` must set
