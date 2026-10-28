@@ -9,11 +9,30 @@
       "pull-request-title-pattern": "chore(release): snare ${version}",
       "pull-request-header": "Release snare",
       "changelog-sections": [
-        { "type": "feat", "section": "Added" },
-        { "type": "fix", "section": "Fixed" },
-        { "type": "perf", "section": "Changed" },
-        { "type": "refactor", "section": "Changed" },
-        { "type": "revert", "section": "Changed" }
+        {
+          "type": "feat",
+          "section": "Added"
+        },
+        {
+          "type": "fix",
+          "section": "Fixed"
+        },
+        {
+          "type": "perf",
+          "section": "Changed"
+        },
+        {
+          "type": "refactor",
+          "section": "Changed"
+        },
+        {
+          "type": "revert",
+          "section": "Changed"
+        },
+        {
+          "type": "build",
+          "section": "Dependencies"
+        }
       ]
     }
   }
