@@ -71,13 +71,14 @@ images.
 ## Kubernetes
 
 ```bash
+kubectl create namespace snare --dry-run=client -o yaml | kubectl apply -f -
 kubectl -n snare create secret generic snare-config \
   --from-file=config.yaml=./config.yaml \
   --dry-run=client -o yaml | kubectl apply -f -
 
 helm repo add kgrubb-snare https://kgrubb.github.io/snare
 helm repo update
-helm install snare kgrubb-snare/snare -n snare --create-namespace \
+helm install snare kgrubb-snare/snare -n snare \
   --set existingSecret=snare-config
 ```
 
