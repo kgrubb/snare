@@ -1,0 +1,56 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+annotations:
+  artifacthub.io/category: monitoring
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |
+    - name: snare
+      image: ghcr.io/kgrubb/snare:1.0.1
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: support
+      url: https://github.com/kgrubb/snare/issues
+    - name: source
+      url: https://github.com/kgrubb/snare
+  artifacthub.io/prerelease: "false"
+apiVersion: v2
+appVersion: 1.1.1
+description: SNMP facade for Netgear Plus / Easy Smart switches
+home: https://github.com/kgrubb/snare
+keywords:
+- - snmp
+- - netgear
+- - monitoring
+- - networking
+maintainers:
+- - email: 8471701+kgrubb@users.noreply.github.com
+  name: kgrubb
+  url: https://github.com/kgrubb
+name: snare
+sources:
+- - https://github.com/kgrubb/snare
+type: application
+version: 1.1.1
+
+...
+files:
+  snare-1.1.1.tgz: sha256:2d6c9d30c7af5be9aa692f2700fadebaad68a4cd335f5879316030ccb61cc489
+
+-----BEGIN PGP SIGNATURE-----
+
+wsG5BAEBCgBtBYJq4rYyCRDKmZpzOV9F/UUUAAAAAAAcACBzYWx0QG5vdGF0aW9u
+cy5vcGVucGdwanMub3JnGt5zGCklpysUYdcvyluJuSEwMhU9tbAsWUlW2iyuANsW
+IQSvtJU4T9rU7cDr+P7KmZpzOV9F/QAAVpIP/3jCbB4gnwrOy7U/a0K4BqYXGZyu
+etQLEz7nT8m8P/9PMJHbc/poOBmN6+Apdu0RpqtQ2ST7S+Sl3KFEHRO/rfTlbzL0
+krbEt5rybpzfQqYIEDKOYVd5TOyaCTlwO4yWhBdHz1PMjDl9Cy5SA5Q7cHV40/fD
+v1aT2TeFCg2iLkdacWX8Lm8W+C4dNlL/eltJA2ov81UQmHS2g0HCCPTAImb5D0dF
+FG696FCZfvAMrN6D49leX/oiiMPh1j01nuy6aaJJz4Pz4vDWu6UmBUwlqZ+nrE1V
+4mIoyIu6VxYgwcpnTUKQacUWu5yvLA/fcygNkOWMl+d6idiMSuLJU/+sLkeSZ4WY
+1L5IiijF53wlrXdhQ/FdAJqmvan+vMU3XliblN4cKvui0DvozRlE9WHef6oA7QUm
+J0B0IBCz2d1lFlWCUgP19+zwoLuE26NkbVU756aHccl4qDVfOMn2OKl2cImdvUTZ
+AL52KRBRPWRx0hhz8aGo2x0uDLdorZRY8pqRIIV/KVw+pv9LaVgij/sczIF4SQYF
+GQjqi29pzLNhJCoqvBFJCJ6zNuieuXAHcvVTWbQa/9LdbTeIxaLJKssUE8Yvhezd
+RyQOTAPW3g9mVi9MMZgLH5Xe6YNNfCqMSO4rIPAZ7kv8h/BJLl8B1MIhkI3KE8Xs
+E6/PsHkx7Bu9FWrS
+-----END PGP SIGNATURE-----
