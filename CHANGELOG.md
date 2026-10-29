@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/kgrubb/snare/compare/v1.1.0...v1.1.1) (2026-10-29)
+
+
+### Fixed
+
+* bump chart-releaser-action for skip_packaging ([#12](https://github.com/kgrubb/snare/issues/12)) ([5294a0b](https://github.com/kgrubb/snare/commit/5294a0b6a5d8ee6c309a58a07cd1c32d9e50f818))
+
 ## [1.1.0](https://github.com/kgrubb/snare/compare/v1.0.1...v1.1.0) (2026-10-29)
 
 
