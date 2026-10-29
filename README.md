@@ -66,7 +66,8 @@ Image base: `gcr.io/distroless/static-debian12:nonroot`.
 from conventional commits (semver + `CHANGELOG.md`). Merging that PR tags
 `vX.Y.Z` and writes the GitHub release notes. GoReleaser then renames the
 release to `snare-X.Y.Z`, attaches binaries, and publishes multi-arch GHCR
-images.
+images. The same release publishes the Helm chart (`snare-X.Y.Z` chart tag
+plus gh-pages index) with matching `Chart.yaml` / image tag.
 
 ## Kubernetes
 
@@ -88,8 +89,7 @@ From a checkout, create the namespace and Secret the same way, then
 The chart ships a UDP LoadBalancer on port 161. The pod listens on 1161
 (distroless nonroot cannot bind privileged ports), so `config.yaml` must set
 `listen: ":1161"` (or match `service.targetPort`). Point your NMS at the
-Service IP, not the Plus switch. Bump `charts/snare/Chart.yaml` `version` on
-every chart change so chart-releaser publishes it.
+Service IP, not the Plus switch. Chart version tracks the app release.
 
 ## Scope
 
