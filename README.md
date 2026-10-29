@@ -66,52 +66,30 @@ Image base: `gcr.io/distroless/static-debian12:nonroot`.
 from conventional commits (semver + `CHANGELOG.md`). Merging that PR tags
 `vX.Y.Z` and writes the GitHub release notes. GoReleaser then renames the
 release to `snare-X.Y.Z`, attaches binaries, and publishes multi-arch GHCR
-images.
+images. The same release publishes the Helm chart (`snare-X.Y.Z` chart tag
+plus gh-pages index) with matching `Chart.yaml` / image tag.
 
 ## Kubernetes
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: snare
-spec:
-  replicas: 1
-  selector:
-    matchLabels: {app: snare}
-  template:
-    metadata:
-      labels: {app: snare}
-    spec:
-      containers:
-        - name: snare
-          image: ghcr.io/kgrubb/snare:latest
-          args: ["--config", "/config/config.yaml"]
-          ports:
-            - containerPort: 161
-              protocol: UDP
-          volumeMounts:
-            - name: config
-              mountPath: /config
-              readOnly: true
-      volumes:
-        - name: config
-          secret:
-            secretName: snare-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: snare
-spec:
-  type: LoadBalancer
-  selector: {app: snare}
-  ports:
-    - port: 161
-      protocol: UDP
+```bash
+kubectl create namespace snare --dry-run=client -o yaml | kubectl apply -f -
+kubectl -n snare create secret generic snare-config \
+  --from-file=config.yaml=./config.yaml \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+helm repo add kgrubb-snare https://kgrubb.github.io/snare
+helm repo update
+helm install snare kgrubb-snare/snare -n snare \
+  --set existingSecret=snare-config
 ```
 
-Point your NMS at the Service IP, not the Plus switch.
+From a checkout, create the namespace and Secret the same way, then
+`helm install snare ./charts/snare -n snare --set existingSecret=snare-config`.
+
+The chart ships a UDP LoadBalancer on port 161. The pod listens on 1161
+(distroless nonroot cannot bind privileged ports), so `config.yaml` must set
+`listen: ":1161"` (or match `service.targetPort`). Point your NMS at the
+Service IP, not the Plus switch. Chart version tracks the app release.
 
 ## Scope
 

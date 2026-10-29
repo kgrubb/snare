@@ -8,6 +8,23 @@
       "changelog-path": "CHANGELOG.md",
       "pull-request-title-pattern": "chore(release): snare ${version}",
       "pull-request-header": "Release snare",
+      "extra-files": [
+        {
+          "type": "yaml",
+          "path": "charts/snare/Chart.yaml",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/snare/Chart.yaml",
+          "jsonpath": "$.appVersion"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/snare/values.yaml",
+          "jsonpath": "$.image.tag"
+        }
+      ],
       "changelog-sections": [
         {
           "type": "feat",

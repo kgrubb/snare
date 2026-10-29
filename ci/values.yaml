@@ -1,0 +1,6 @@
+# CI render fixture used by helm lint/template.
+fullnameOverride: snare
+config:
+  switch:
+    url: http://192.168.1.205
+    password: ci-only
