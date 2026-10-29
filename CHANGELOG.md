@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/kgrubb/snare/compare/v1.0.1...v1.1.0) (2026-10-29)
+
+
+### Added
+
+* add in-repo Helm chart ([#10](https://github.com/kgrubb/snare/issues/10)) ([5c82819](https://github.com/kgrubb/snare/commit/5c828190acb662a0e69417c69e3d0a6ee4c719be))
+
 ## [1.0.1](https://github.com/kgrubb/snare/compare/v1.0.0...v1.0.1) (2026-10-28)
 
 
