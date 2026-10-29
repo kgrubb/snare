@@ -1,75 +1,54 @@
-# Prefer pinned tags (kube-linter blocks :latest).
 image:
   repository: ghcr.io/kgrubb/snare
-  tag: "1.0.1"
-  digest: ""
+  tag: 1.1.0
+  digest: ''
   pullPolicy: IfNotPresent
-
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-# One replica. Scraped state and trap diffs live in process memory.
+nameOverride: ''
+fullnameOverride: ''
 replicaCount: 1
-
 strategy:
   type: Recreate
-
 serviceAccount:
   create: true
   automountServiceAccountToken: false
   annotations: {}
-  name: ""
-
-# NMS talks to the Service. Container listens on an unprivileged port.
+  name: ''
 service:
   type: LoadBalancer
   port: 161
   targetPort: 1161
-  # Local for MetalLB L2 so ARP stays on the node running the pod.
   externalTrafficPolicy: Local
   annotations: {}
-
-# Rendered into Secret key config.yaml unless existingSecret is set.
-# Keys match snare's config file. switch.url and switch.password are required
-# when the chart creates the Secret. listen is always ":<service.targetPort>".
 config:
-  community: "public"
+  community: public
   poll: 30s
   switch:
-    url: ""
-    password: ""
+    url: ''
+    password: ''
     ports: 8
     poe_budget_watts: 62
   snmpv3:
-    username: ""
-    auth_pass: ""
-    priv_pass: ""
+    username: ''
+    auth_pass: ''
+    priv_pass: ''
     auth_proto: SHA
     priv_proto: AES
   traps:
     enabled: false
     targets: []
   sys:
-    name: ""
-    contact: ""
-    location: ""
-
-# existingSecret must contain key config.yaml with listen set to
-# ":<service.targetPort>" (default ":1161"). Mutually exclusive with inline config.
-existingSecret: ""
-
+    name: ''
+    contact: ''
+    location: ''
+existingSecret: ''
 resources: {}
-
 podAnnotations: {}
 podLabels: {}
-
-# Matches gcr.io/distroless/static-debian12:nonroot.
 podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
   fsGroup: 65532
-
 containerSecurityContext:
   allowPrivilegeEscalation: false
   runAsNonRoot: true
@@ -79,11 +58,9 @@ containerSecurityContext:
   capabilities:
     drop:
       - ALL
-
 extraEnv: {}
 extraVolumes: []
 extraVolumeMounts: []
-
 nodeSelector: {}
 tolerations: []
 affinity: {}
