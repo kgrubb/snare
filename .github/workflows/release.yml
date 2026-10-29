@@ -110,12 +110,20 @@ jobs:
       # Package ourselves so chart-releaser does not rely on "changed since tag"
       # (release-please just tagged this commit, so change detection is empty).
       - name: Package chart
+        env:
+          SIGNED: ${{ steps.gpg.outputs.signed }}
+          CR_KEY: 8471701+kgrubb@users.noreply.github.com
         run: |
           mkdir -p .cr-release-packages
-          helm package charts/snare -d .cr-release-packages
+          args=(charts/snare -d .cr-release-packages)
+          if [[ "${SIGNED}" == "true" ]]; then
+            args+=(--sign --key "$CR_KEY" --keyring "$CR_KEYRING" --passphrase-file "$CR_PASSPHRASE_FILE")
+          fi
+          helm package "${args[@]}"
 
       - name: Publish charts
-        uses: helm/chart-releaser-action@v1.7.0
+        # v1.8.0 fixes unbound latest_tag when skip_packaging is set.
+        uses: helm/chart-releaser-action@v1.8.0
         with:
           charts_dir: charts
           config: cr.yaml
