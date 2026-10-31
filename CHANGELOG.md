@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/kgrubb/snare/compare/v1.1.2...v1.1.3) (2026-10-31)
+
+
+### Fixed
+
+* logout on SIGTERM and back off on session limit ([#16](https://github.com/kgrubb/snare/issues/16)) ([afdadfd](https://github.com/kgrubb/snare/commit/afdadfd224336a8824fe178508002bf2e9c97789))
+
 ## [1.1.2](https://github.com/kgrubb/snare/compare/v1.1.1...v1.1.2) (2026-10-31)
 
 
