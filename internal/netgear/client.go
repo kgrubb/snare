@@ -7,6 +7,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -17,6 +18,7 @@ type Client struct {
 	ports    int
 	budget   uint
 	http     *http.Client
+	mu       sync.Mutex
 }
 
 func NewClient(baseURL, password string, ports int, poeBudget uint) (*Client, error) {
@@ -47,6 +49,8 @@ func NewClient(baseURL, password string, ports int, poeBudget uint) (*Client, er
 }
 
 func (c *Client) Poll() (*Snapshot, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if !c.hasSID() {
 		if err := c.login(); err != nil {
 			return nil, err
@@ -58,11 +62,7 @@ func (c *Client) Poll() (*Snapshot, error) {
 	}
 	// SID can outlive the server session. Clear it before re-login so a failed POST cannot look like success.
 	if parseRand(dash) != "" {
-		u, _ := url.Parse(c.base)
-		c.http.Jar.SetCookies(u, []*http.Cookie{
-			{Name: "SID", Value: "", MaxAge: -1},
-			{Name: "GS108SID", Value: "", MaxAge: -1},
-		})
+		c.clearSID()
 		if err := c.login(); err != nil {
 			return nil, err
 		}
@@ -123,11 +123,31 @@ func (c *Client) login() error {
 		return err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	_, _ = io.Copy(io.Discard, resp.Body)
+	respBody, _ := io.ReadAll(resp.Body)
 	if c.hasSID() {
 		return nil
 	}
+	if strings.Contains(string(respBody), "maximum number of sessions") {
+		return fmt.Errorf("login failed: switch session limit reached")
+	}
 	return fmt.Errorf("login failed: no SID cookie (status %d)", resp.StatusCode)
+}
+
+// Logout frees the switch session slot (POST /logout.cgi). Call on process shutdown.
+func (c *Client) Logout() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if !c.hasSID() {
+		return
+	}
+	req, err := http.NewRequest(http.MethodPost, c.base+"/logout.cgi", nil)
+	if err == nil {
+		if resp, err := c.http.Do(req); err == nil {
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close()
+		}
+	}
+	c.clearSID()
 }
 
 func (c *Client) hasSID() bool {
@@ -138,6 +158,14 @@ func (c *Client) hasSID() bool {
 		}
 	}
 	return false
+}
+
+func (c *Client) clearSID() {
+	u, _ := url.Parse(c.base)
+	c.http.Jar.SetCookies(u, []*http.Cookie{
+		{Name: "SID", Value: "", MaxAge: -1},
+		{Name: "GS108SID", Value: "", MaxAge: -1},
+	})
 }
 
 func (c *Client) get(path string) (string, error) {

@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 	"time"
 
 	"github.com/kgrubb/snare/internal/agent"
@@ -33,20 +36,40 @@ func main() {
 		log.Fatalf("switch client: %v", err)
 	}
 
+	// Free the switch session on SIGTERM so k8s rollouts do not orphan the only SID slot.
+	go func() {
+		ch := make(chan os.Signal, 1)
+		signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT)
+		<-ch
+		client.Logout()
+		os.Exit(0)
+	}()
+
 	store := agent.NewStore()
 	traps := trap.New(cfg, store)
 
 	go func() {
+		wait := cfg.Poll
 		for {
 			snap, err := client.Poll()
 			if err != nil {
 				log.Printf("poll: %v", err)
+				// Only slow down for a full session table so it can idle-expire.
+				if strings.Contains(err.Error(), "session limit") {
+					wait *= 2
+					if wait > 10*time.Minute {
+						wait = 10 * time.Minute
+					}
+				} else {
+					wait = cfg.Poll
+				}
 			} else {
+				wait = cfg.Poll
 				traps.DiffAndSend(snap)
 				store.Set(snap)
 				log.Printf("scraped %s ports=%d", snap.Model, len(snap.Ports))
 			}
-			time.Sleep(cfg.Poll)
+			time.Sleep(wait)
 		}
 	}()
 

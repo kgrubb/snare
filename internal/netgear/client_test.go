@@ -221,6 +221,55 @@ func TestClientLoginFailures(t *testing.T) {
 		}
 	})
 
+	t.Run("session limit", func(t *testing.T) {
+		t.Parallel()
+		mux := http.NewServeMux()
+		mux.HandleFunc("/login.cgi", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				_, _ = w.Write([]byte(`<input id='rand' value='1'>`))
+				return
+			}
+			_, _ = w.Write([]byte(`The maximum number of sessions has been reached.`))
+		})
+		srv := httptest.NewServer(mux)
+		t.Cleanup(srv.Close)
+		c, err := NewClient(srv.URL, "pw", 8, 62)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = c.login()
+		if err == nil || !strings.Contains(err.Error(), "session limit") {
+			t.Fatalf("err = %v", err)
+		}
+	})
+
+	t.Run("logout posts and clears sid", func(t *testing.T) {
+		t.Parallel()
+		loggedOut := false
+		mux := http.NewServeMux()
+		mux.HandleFunc("/logout.cgi", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				loggedOut = true
+			}
+			_, _ = w.Write([]byte(`ok`))
+		})
+		srv := httptest.NewServer(mux)
+		t.Cleanup(srv.Close)
+		c, err := NewClient(srv.URL, "pw", 8, 62)
+		if err != nil {
+			t.Fatal(err)
+		}
+		base, _ := url.Parse(srv.URL)
+		c.http.Jar.SetCookies(base, []*http.Cookie{{Name: "SID", Value: "live"}})
+		c.Logout()
+		if !loggedOut {
+			t.Fatal("expected POST /logout.cgi")
+		}
+		if c.hasSID() {
+			t.Fatal("SID should be cleared")
+		}
+	})
+
 	t.Run("http error on get", func(t *testing.T) {
 		t.Parallel()
 		mux := http.NewServeMux()
