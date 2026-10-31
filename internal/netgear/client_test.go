@@ -3,6 +3,7 @@ package netgear
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -81,12 +82,14 @@ func TestClientPollAndLogin(t *testing.T) {
   <div class="hid_info_title"><span>ml574</span></div><div><span>4.2</span>
 </li>`
 
+	logins := 0
 	mux := http.NewServeMux()
 	mux.HandleFunc("/login.cgi", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			_, _ = w.Write([]byte(`<input id="rand" value="12">`))
 			return
 		}
+		logins++
 		http.SetCookie(w, &http.Cookie{Name: "SID", Value: "ok"})
 		w.WriteHeader(http.StatusOK)
 	})
@@ -123,6 +126,12 @@ func TestClientPollAndLogin(t *testing.T) {
 	if snap.PoEBudget != 62 {
 		t.Fatalf("budget = %d", snap.PoEBudget)
 	}
+	if _, err := c.Poll(); err != nil {
+		t.Fatal(err)
+	}
+	if logins != 1 {
+		t.Fatalf("logins = %d, want 1 (reuse SID)", logins)
+	}
 }
 
 func TestClientLoginFailures(t *testing.T) {
@@ -146,6 +155,69 @@ func TestClientLoginFailures(t *testing.T) {
 		}
 		if err := c.login(); err == nil {
 			t.Fatal("expected login failure")
+		}
+	})
+
+	t.Run("relogin when sid expired", func(t *testing.T) {
+		t.Parallel()
+		logins := 0
+		authed := false
+		mux := http.NewServeMux()
+		mux.HandleFunc("/login.cgi", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				_, _ = w.Write([]byte(`<input id='rand' value='1'>`))
+				return
+			}
+			logins++
+			authed = true
+			http.SetCookie(w, &http.Cookie{Name: "SID", Value: "ok"})
+		})
+		mux.HandleFunc("/dashboard.cgi", func(w http.ResponseWriter, r *http.Request) {
+			if !authed {
+				_, _ = w.Write([]byte(`<input id='rand' value='9'>`))
+				return
+			}
+			_, _ = w.Write([]byte(`<html><head><title>GS308EP</title></head><body><span id="switch_name">lab</span></body></html>`))
+		})
+		mux.HandleFunc("/portStatistics.cgi", func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`<html></html>`))
+		})
+		srv := httptest.NewServer(mux)
+		t.Cleanup(srv.Close)
+		c, err := NewClient(srv.URL, "pw", 1, 62)
+		if err != nil {
+			t.Fatal(err)
+		}
+		base, _ := url.Parse(srv.URL)
+		c.http.Jar.SetCookies(base, []*http.Cookie{{Name: "SID", Value: "stale"}})
+		authed = false
+		if _, err := c.Poll(); err != nil {
+			t.Fatal(err)
+		}
+		if logins != 1 {
+			t.Fatalf("logins = %d, want 1", logins)
+		}
+	})
+
+	t.Run("stale sid does not mask failed relogin", func(t *testing.T) {
+		t.Parallel()
+		mux := http.NewServeMux()
+		mux.HandleFunc("/login.cgi", func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`<input id='rand' value='1'>`))
+		})
+		mux.HandleFunc("/dashboard.cgi", func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`<input id='rand' value='9'>`))
+		})
+		srv := httptest.NewServer(mux)
+		t.Cleanup(srv.Close)
+		c, err := NewClient(srv.URL, "pw", 1, 62)
+		if err != nil {
+			t.Fatal(err)
+		}
+		base, _ := url.Parse(srv.URL)
+		c.http.Jar.SetCookies(base, []*http.Cookie{{Name: "SID", Value: "stale"}})
+		if _, err := c.Poll(); err == nil {
+			t.Fatal("expected poll failure when relogin sets no SID")
 		}
 	})
 

@@ -47,12 +47,29 @@ func NewClient(baseURL, password string, ports int, poeBudget uint) (*Client, er
 }
 
 func (c *Client) Poll() (*Snapshot, error) {
-	if err := c.login(); err != nil {
-		return nil, err
+	if !c.hasSID() {
+		if err := c.login(); err != nil {
+			return nil, err
+		}
 	}
 	dash, err := c.get("/dashboard.cgi")
 	if err != nil {
 		return nil, err
+	}
+	// SID can outlive the server session. Clear it before re-login so a failed POST cannot look like success.
+	if parseRand(dash) != "" {
+		u, _ := url.Parse(c.base)
+		c.http.Jar.SetCookies(u, []*http.Cookie{
+			{Name: "SID", Value: "", MaxAge: -1},
+			{Name: "GS108SID", Value: "", MaxAge: -1},
+		})
+		if err := c.login(); err != nil {
+			return nil, err
+		}
+		dash, err = c.get("/dashboard.cgi")
+		if err != nil {
+			return nil, err
+		}
 	}
 	name, serial, fw := parseMetadata(dash)
 	ports := parsePortStatus(dash, c.ports)
@@ -107,13 +124,20 @@ func (c *Client) login() error {
 	}
 	defer func() { _ = resp.Body.Close() }()
 	_, _ = io.Copy(io.Discard, resp.Body)
+	if c.hasSID() {
+		return nil
+	}
+	return fmt.Errorf("login failed: no SID cookie (status %d)", resp.StatusCode)
+}
+
+func (c *Client) hasSID() bool {
 	u, _ := url.Parse(c.base)
 	for _, ck := range c.http.Jar.Cookies(u) {
 		if ck.Name == "SID" || ck.Name == "GS108SID" {
-			return nil
+			return true
 		}
 	}
-	return fmt.Errorf("login failed: no SID cookie (status %d)", resp.StatusCode)
+	return false
 }
 
 func (c *Client) get(path string) (string, error) {
