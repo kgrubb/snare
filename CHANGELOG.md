@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/kgrubb/snare/compare/v1.1.1...v1.1.2) (2026-10-31)
+
+
+### Fixed
+
+* reuse GS308EP SID instead of logging in every poll ([#14](https://github.com/kgrubb/snare/issues/14)) ([2b8b3c9](https://github.com/kgrubb/snare/commit/2b8b3c922421b3aede59569fa05b0b83b1df6742))
+
 ## [1.1.1](https://github.com/kgrubb/snare/compare/v1.1.0...v1.1.1) (2026-10-29)
 
 
