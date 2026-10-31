@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -53,10 +54,14 @@ func main() {
 			snap, err := client.Poll()
 			if err != nil {
 				log.Printf("poll: %v", err)
-				// Back off so a full session table can idle-expire instead of being hammered every poll.
-				wait *= 2
-				if wait > 10*time.Minute {
-					wait = 10 * time.Minute
+				// Only slow down for a full session table so it can idle-expire.
+				if strings.Contains(err.Error(), "session limit") {
+					wait *= 2
+					if wait > 10*time.Minute {
+						wait = 10 * time.Minute
+					}
+				} else {
+					wait = cfg.Poll
 				}
 			} else {
 				wait = cfg.Poll
