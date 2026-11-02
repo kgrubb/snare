@@ -8,7 +8,7 @@
   <a href="https://github.com/kgrubb/snare/pkgs/container/snare"><img src="https://img.shields.io/badge/ghcr-snare-blue.svg" alt="GHCR" /></a>
 </p>
 
-SNMP facade for Netgear Plus / Easy Smart switches (GS308EP and similar). The switch only has a web UI. snare scrapes it and speaks SNMPv2c / SNMPv3 so an NMS can poll and receive traps.
+Netgear Plus switches (GS308EP and friends) ship a web UI and no SNMP agent. snare scrapes that UI and serves SNMPv2c / SNMPv3 so an NMS can poll and receive traps.
 
 ## Protocols
 
@@ -56,7 +56,7 @@ helm install snare kgrubb-snare/snare -n snare --create-namespace \
   --set config.switch.password=changeme
 ```
 
-Point your NMS at the Service IP (UDP 161), not the switch. Or set `existingSecret` to a Secret that contains `config.yaml`.
+Point the NMS at the Service IP on UDP 161. To load config from a Secret instead, set `existingSecret`.
 
 ## License
 
