@@ -52,7 +52,7 @@ docker run --rm -p 161:161/udp \
 ```bash
 helm repo add kgrubb-snare https://kgrubb.github.io/snare
 helm install snare kgrubb-snare/snare -n snare --create-namespace \
-  --set config.switch.url=http://192.168.1.205 \
+  --set config.switch.url=http://192.0.2.10 \
   --set config.switch.password=changeme
 ```
 
