@@ -3,7 +3,7 @@ community: "public"
 poll: 30s
 
 switch:
-  url: "http://192.168.1.205"
+  url: "http://192.0.2.10"
   password: "changeme"
   ports: 8
   poe_budget_watts: 62
@@ -19,7 +19,7 @@ snmpv3:
 traps:
   enabled: false
   targets:
-    - "192.168.1.10:162"
+    - "192.0.2.20:162"
 
 sys:
   name: "gs308ep"
