@@ -14,18 +14,20 @@ import (
 // SNMPv2-MIB, IF-MIB (incl. ifXTable), POWER-ETHERNET-MIB (RFC 3621).
 // sysObjectID uses Netgear enterprise 4526 with a Plus-facade leaf.
 const (
-	oidSysDescr     = "1.3.6.1.2.1.1.1.0"
-	oidSysObjectID  = "1.3.6.1.2.1.1.2.0"
-	oidSysUpTime    = "1.3.6.1.2.1.1.3.0"
-	oidSysContact   = "1.3.6.1.2.1.1.4.0"
-	oidSysName      = "1.3.6.1.2.1.1.5.0"
-	oidSysLocation  = "1.3.6.1.2.1.1.6.0"
-	oidSysServices  = "1.3.6.1.2.1.1.7.0"
-	oidIfNumber     = "1.3.6.1.2.1.2.1.0"
-	oidIfEntry      = "1.3.6.1.2.1.2.2.1"
-	oidIfXEntry     = "1.3.6.1.2.1.31.1.1.1"
-	oidPethPseEntry = "1.3.6.1.2.1.105.1.1.1"
-	oidPethMainPse  = "1.3.6.1.2.1.105.1.3.1.1"
+	oidSysDescr          = "1.3.6.1.2.1.1.1.0"
+	oidSysObjectID       = "1.3.6.1.2.1.1.2.0"
+	oidSysUpTime         = "1.3.6.1.2.1.1.3.0"
+	oidSysContact        = "1.3.6.1.2.1.1.4.0"
+	oidSysName           = "1.3.6.1.2.1.1.5.0"
+	oidSysLocation       = "1.3.6.1.2.1.1.6.0"
+	oidSysServices       = "1.3.6.1.2.1.1.7.0"
+	oidIfNumber          = "1.3.6.1.2.1.2.1.0"
+	oidIfEntry           = "1.3.6.1.2.1.2.2.1"
+	oidIfXEntry          = "1.3.6.1.2.1.31.1.1.1"
+	oidIfTableLastChange = "1.3.6.1.2.1.31.1.5.0"
+	oidIfStackLastChange = "1.3.6.1.2.1.31.1.6.0"
+	oidPethPseEntry      = "1.3.6.1.2.1.105.1.1.1"
+	oidPethMainPse       = "1.3.6.1.2.1.105.1.3.1.1"
 	// enterprises.netgear.snarePlus.gs308ep
 	oidNetgearPlus = "1.3.6.1.4.1.4526.100.308"
 )
@@ -52,6 +54,8 @@ func buildOIDs(store *Store, cfg *config.Config) []*gosnmpd.PDUValueControlItem 
 		strOID(oidSysLocation, func() string { return cfg.Sys.Location }),
 		intOID(oidSysServices, func() int { return 2 }), // data link
 		intOID(oidIfNumber, func() int { return len(get().Ports) }),
+		ticksOID(oidIfTableLastChange, func() uint32 { return 0 }),
+		ticksOID(oidIfStackLastChange, func() uint32 { return 0 }),
 		gaugeOID(oidPethMainPse+".2.1", func() uint { return get().PoEBudget }),
 		intOID(oidPethMainPse+".3.1", func() int { return 1 }), // on
 		gaugeOID(oidPethMainPse+".4.1", func() uint {
@@ -73,31 +77,57 @@ func buildOIDs(store *Store, cfg *config.Config) []*gosnmpd.PDUValueControlItem 
 			}
 			return netgear.Port{Index: idx}
 		}
+		upDown := func() int {
+			if port().Up {
+				return 1
+			}
+			return 2
+		}
+		// Every ifEntry/ifXEntry leaf. A hole makes gosnmpd NoSuchName the whole GET.
+		// Counters the Plus UI lacks return 0.
 		items = append(items,
 			intOID(fmt.Sprintf("%s.1.%d", oidIfEntry, idx), func() int { return idx }),
 			strOID(fmt.Sprintf("%s.2.%d", oidIfEntry, idx), func() string { return fmt.Sprintf("Port %d", idx) }),
 			intOID(fmt.Sprintf("%s.3.%d", oidIfEntry, idx), func() int { return 6 }), // ethernetCsmacd
+			intOID(fmt.Sprintf("%s.4.%d", oidIfEntry, idx), func() int { return 1500 }),
 			gaugeOID(fmt.Sprintf("%s.5.%d", oidIfEntry, idx), func() uint {
 				return uint(port().SpeedMbps * 1_000_000)
 			}),
-			intOID(fmt.Sprintf("%s.7.%d", oidIfEntry, idx), func() int {
-				if port().Up {
-					return 1
-				}
-				return 2
-			}),
-			intOID(fmt.Sprintf("%s.8.%d", oidIfEntry, idx), func() int {
-				if port().Up {
-					return 1
-				}
-				return 2
-			}),
+			strOID(fmt.Sprintf("%s.6.%d", oidIfEntry, idx), func() string { return "" }), // no per-port MAC from UI
+			intOID(fmt.Sprintf("%s.7.%d", oidIfEntry, idx), upDown),
+			intOID(fmt.Sprintf("%s.8.%d", oidIfEntry, idx), upDown),
+			ticksOID(fmt.Sprintf("%s.9.%d", oidIfEntry, idx), func() uint32 { return 0 }),
 			counterOID(fmt.Sprintf("%s.10.%d", oidIfEntry, idx), func() uint { return uint(port().RxBytes) }),
-			counterOID(fmt.Sprintf("%s.16.%d", oidIfEntry, idx), func() uint { return uint(port().TxBytes) }),
+			counterOID(fmt.Sprintf("%s.11.%d", oidIfEntry, idx), func() uint { return 0 }),
+			counterOID(fmt.Sprintf("%s.12.%d", oidIfEntry, idx), func() uint { return 0 }),
+			counterOID(fmt.Sprintf("%s.13.%d", oidIfEntry, idx), func() uint { return 0 }),
 			counterOID(fmt.Sprintf("%s.14.%d", oidIfEntry, idx), func() uint { return uint(port().CRCErrors) }),
-			counter64OID(fmt.Sprintf("%s.6.%d", oidIfXEntry, idx), func() uint64 { return port().RxBytes }),
-			counter64OID(fmt.Sprintf("%s.10.%d", oidIfXEntry, idx), func() uint64 { return port().TxBytes }),
+			counterOID(fmt.Sprintf("%s.15.%d", oidIfEntry, idx), func() uint { return 0 }),
+			counterOID(fmt.Sprintf("%s.16.%d", oidIfEntry, idx), func() uint { return uint(port().TxBytes) }),
+			counterOID(fmt.Sprintf("%s.17.%d", oidIfEntry, idx), func() uint { return 0 }),
+			counterOID(fmt.Sprintf("%s.18.%d", oidIfEntry, idx), func() uint { return 0 }),
+			counterOID(fmt.Sprintf("%s.19.%d", oidIfEntry, idx), func() uint { return 0 }),
+			counterOID(fmt.Sprintf("%s.20.%d", oidIfEntry, idx), func() uint { return 0 }),
+			gaugeOID(fmt.Sprintf("%s.21.%d", oidIfEntry, idx), func() uint { return 0 }),
 			strOID(fmt.Sprintf("%s.1.%d", oidIfXEntry, idx), func() string { return fmt.Sprintf("Port %d", idx) }),
+			counterOID(fmt.Sprintf("%s.2.%d", oidIfXEntry, idx), func() uint { return 0 }),
+			counterOID(fmt.Sprintf("%s.3.%d", oidIfXEntry, idx), func() uint { return 0 }),
+			counterOID(fmt.Sprintf("%s.4.%d", oidIfXEntry, idx), func() uint { return 0 }),
+			counterOID(fmt.Sprintf("%s.5.%d", oidIfXEntry, idx), func() uint { return 0 }),
+			counter64OID(fmt.Sprintf("%s.6.%d", oidIfXEntry, idx), func() uint64 { return port().RxBytes }),
+			counter64OID(fmt.Sprintf("%s.7.%d", oidIfXEntry, idx), func() uint64 { return 0 }),
+			counter64OID(fmt.Sprintf("%s.8.%d", oidIfXEntry, idx), func() uint64 { return 0 }),
+			counter64OID(fmt.Sprintf("%s.9.%d", oidIfXEntry, idx), func() uint64 { return 0 }),
+			counter64OID(fmt.Sprintf("%s.10.%d", oidIfXEntry, idx), func() uint64 { return port().TxBytes }),
+			counter64OID(fmt.Sprintf("%s.11.%d", oidIfXEntry, idx), func() uint64 { return 0 }),
+			counter64OID(fmt.Sprintf("%s.12.%d", oidIfXEntry, idx), func() uint64 { return 0 }),
+			counter64OID(fmt.Sprintf("%s.13.%d", oidIfXEntry, idx), func() uint64 { return 0 }),
+			intOID(fmt.Sprintf("%s.14.%d", oidIfXEntry, idx), func() int { return 1 }), // enabled (we send link traps)
+			gaugeOID(fmt.Sprintf("%s.15.%d", oidIfXEntry, idx), func() uint { return uint(port().SpeedMbps) }),
+			intOID(fmt.Sprintf("%s.16.%d", oidIfXEntry, idx), func() int { return 2 }), // false
+			intOID(fmt.Sprintf("%s.17.%d", oidIfXEntry, idx), func() int { return 1 }), // true
+			strOID(fmt.Sprintf("%s.18.%d", oidIfXEntry, idx), func() string { return "" }),
+			ticksOID(fmt.Sprintf("%s.19.%d", oidIfXEntry, idx), func() uint32 { return 0 }),
 			// POWER-ETHERNET-MIB pethPsePortTable index group=1,port=N
 			intOID(fmt.Sprintf("%s.3.1.%d", oidPethPseEntry, idx), func() int {
 				if port().PoEAdmin {
