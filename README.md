@@ -8,7 +8,7 @@
   <a href="https://github.com/kgrubb/snare/pkgs/container/snare"><img src="https://img.shields.io/badge/ghcr-snare-blue.svg" alt="GHCR" /></a>
 </p>
 
-Netgear Plus switches (GS308EP and friends) ship a web UI and no SNMP agent. snare scrapes that UI and serves SNMPv2c / SNMPv3 so an NMS can poll and receive traps.
+Netgear Plus switches (GS308EP and friends) ship a web UI and no SNMP agent. snare scrapes that UI and serves SNMPv2c or SNMPv3 so an NMS can poll and receive traps.
 
 ## Protocols
 
