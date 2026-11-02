@@ -6,10 +6,11 @@ import (
 
 	"github.com/bingoohuang/gosnmpd"
 	"github.com/kgrubb/snare/internal/config"
+	"github.com/kgrubb/snare/internal/topology"
 	"github.com/slayercat/gosnmp"
 )
 
-func ListenAndServe(cfg *config.Config, store *Store) error {
+func ListenAndServe(cfg *config.Config, store *Store, topo *topology.Table) error {
 	users := []gosnmp.UsmSecurityParameters{}
 	if cfg.SNMPv3.Username != "" {
 		auth, priv := authPriv(cfg.SNMPv3.AuthProto, cfg.SNMPv3.PrivProto)
@@ -29,7 +30,7 @@ func ListenAndServe(cfg *config.Config, store *Store) error {
 		},
 		SubAgents: []*gosnmpd.SubAgent{{
 			CommunityIDs: []string{cfg.Community},
-			OIDs:         buildOIDs(store, cfg),
+			OIDs:         buildOIDs(store, cfg, topo),
 		}},
 	}
 	srv := gosnmpd.NewSNMPServer(master)

@@ -11,6 +11,7 @@ import (
 	"github.com/kgrubb/snare/internal/agent"
 	"github.com/kgrubb/snare/internal/config"
 	"github.com/kgrubb/snare/internal/netgear"
+	"github.com/kgrubb/snare/internal/topology"
 	"github.com/kgrubb/snare/internal/trap"
 	"github.com/spf13/pflag"
 )
@@ -46,6 +47,7 @@ func main() {
 	}()
 
 	store := agent.NewStore()
+	topo := topology.New(cfg.Topology.Neighbors)
 	traps := trap.New(cfg, store)
 
 	go func() {
@@ -67,6 +69,7 @@ func main() {
 				wait = cfg.Poll
 				traps.DiffAndSend(snap)
 				store.Set(snap)
+				topo.Enrich()
 				log.Printf("scraped %s ports=%d", snap.Model, len(snap.Ports))
 			}
 			time.Sleep(wait)
@@ -74,7 +77,7 @@ func main() {
 	}()
 
 	log.Printf("snare %s listening snmp on %s (community %q)", version, cfg.Listen, cfg.Community)
-	if err := agent.ListenAndServe(cfg, store); err != nil {
+	if err := agent.ListenAndServe(cfg, store, topo); err != nil {
 		log.Fatal(err)
 	}
 }

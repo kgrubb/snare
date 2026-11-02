@@ -7,11 +7,13 @@ import (
 	"github.com/bingoohuang/gosnmpd"
 	"github.com/kgrubb/snare/internal/config"
 	"github.com/kgrubb/snare/internal/netgear"
+	"github.com/kgrubb/snare/internal/topology"
 	"github.com/slayercat/gosnmp"
 )
 
 // OID layout mirrors Netgear Smart Managed Pro agents:
-// SNMPv2-MIB, IF-MIB (incl. ifXTable), POWER-ETHERNET-MIB (RFC 3621).
+// SNMPv2-MIB, IF-MIB (incl. ifXTable), POWER-ETHERNET-MIB (RFC 3621),
+// LLDP-MIB rem (from topology config, not Plus UI).
 // sysObjectID uses Netgear enterprise 4526 with a Plus-facade leaf.
 const (
 	oidSysDescr          = "1.3.6.1.2.1.1.1.0"
@@ -28,11 +30,16 @@ const (
 	oidIfStackLastChange = "1.3.6.1.2.1.31.1.6.0"
 	oidPethPseEntry      = "1.3.6.1.2.1.105.1.1.1"
 	oidPethMainPse       = "1.3.6.1.2.1.105.1.3.1.1"
+	oidLldpLocChassisSub = "1.0.8802.1.1.2.1.3.1.0"
+	oidLldpLocChassisID  = "1.0.8802.1.1.2.1.3.2.0"
+	oidLldpLocSysName    = "1.0.8802.1.1.2.1.3.3.0"
+	oidLldpLocSysDesc    = "1.0.8802.1.1.2.1.3.4.0"
+	oidLldpRemEntry      = "1.0.8802.1.1.2.1.4.1.1"
 	// enterprises.netgear.snarePlus.gs308ep
 	oidNetgearPlus = "1.3.6.1.4.1.4526.100.308"
 )
 
-func buildOIDs(store *Store, cfg *config.Config) []*gosnmpd.PDUValueControlItem {
+func buildOIDs(store *Store, cfg *config.Config, topo *topology.Table) []*gosnmpd.PDUValueControlItem {
 	get := store.Get
 	items := []*gosnmpd.PDUValueControlItem{
 		strOID(oidSysDescr, func() string {
@@ -56,6 +63,26 @@ func buildOIDs(store *Store, cfg *config.Config) []*gosnmpd.PDUValueControlItem 
 		intOID(oidIfNumber, func() int { return len(get().Ports) }),
 		ticksOID(oidIfTableLastChange, func() uint32 { return 0 }),
 		ticksOID(oidIfStackLastChange, func() uint32 { return 0 }),
+		intOID(oidLldpLocChassisSub, func() int { return 7 }), // local
+		strOID(oidLldpLocChassisID, func() string {
+			if cfg.Sys.Name != "" {
+				return cfg.Sys.Name
+			}
+			return "snare"
+		}),
+		strOID(oidLldpLocSysName, func() string {
+			if cfg.Sys.Name != "" {
+				return cfg.Sys.Name
+			}
+			if n := get().Name; n != "" {
+				return n
+			}
+			return "snare"
+		}),
+		strOID(oidLldpLocSysDesc, func() string {
+			s := get()
+			return fmt.Sprintf("snare %s %s firmware %s", s.Model, s.Serial, s.Firmware)
+		}),
 		gaugeOID(oidPethMainPse+".2.1", func() uint { return get().PoEBudget }),
 		intOID(oidPethMainPse+".3.1", func() int { return 1 }), // on
 		gaugeOID(oidPethMainPse+".4.1", func() uint {
@@ -144,6 +171,25 @@ func buildOIDs(store *Store, cfg *config.Config) []*gosnmpd.PDUValueControlItem 
 				}
 				return 1
 			}),
+		)
+	}
+
+	for _, port := range topo.Ports() {
+		p := port
+		// lldpRemTable index: timeMark=0, localPortNum, remIndex=1
+		idx := fmt.Sprintf("0.%d.1", p)
+		neighbor := func() config.Neighbor {
+			n, _ := topo.Get(p)
+			return n
+		}
+		items = append(items,
+			intOID(fmt.Sprintf("%s.4.%s", oidLldpRemEntry, idx), func() int { return neighbor().ChassisIDSubtype }),
+			strOID(fmt.Sprintf("%s.5.%s", oidLldpRemEntry, idx), func() string { return neighbor().ChassisID }),
+			intOID(fmt.Sprintf("%s.6.%s", oidLldpRemEntry, idx), func() int { return neighbor().PortIDSubtype }),
+			strOID(fmt.Sprintf("%s.7.%s", oidLldpRemEntry, idx), func() string { return neighbor().PortID }),
+			strOID(fmt.Sprintf("%s.8.%s", oidLldpRemEntry, idx), func() string { return neighbor().PortDesc }),
+			strOID(fmt.Sprintf("%s.9.%s", oidLldpRemEntry, idx), func() string { return neighbor().SysName }),
+			strOID(fmt.Sprintf("%s.10.%s", oidLldpRemEntry, idx), func() string { return neighbor().SysDesc }),
 		)
 	}
 	return items

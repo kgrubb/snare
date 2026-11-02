@@ -26,8 +26,15 @@ Netgear Plus switches (GS308EP and friends) ship a web UI and no SNMP agent. sna
 | SNMPv2-MIB | `1.3.6.1.2.1.1` | system group |
 | IF-MIB | `1.3.6.1.2.1.2`/`.31` | ifEntry + ifXEntry (scraped octets, errors, status) |
 | POWER-ETHERNET-MIB | `1.3.6.1.2.1.105` | PoE admin, detection, class, budget |
+| LLDP-MIB | `1.0.8802.1.1.2` | local chassis + rem table from `topology.neighbors` |
 
 `sysObjectID` is `1.3.6.1.4.1.4526.100.308`.
+
+## Topology
+
+Plus firmware has no LLDP or FDB scrape path. Declare `topology.neighbors`
+(see `config.example.yaml`) to publish `LLDP-MIB::lldpRemTable` for NMS maps.
+Optional `snmp` fills blank identity from a peer. Set `port_id` yourself.
 
 ## Quick start
 
