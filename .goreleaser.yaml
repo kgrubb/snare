@@ -52,4 +52,3 @@ dockers_v2:
       "org.opencontainers.image.licenses": "AGPL-3.0-only"
     extra_files:
       - config.example.yaml
-
