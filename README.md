@@ -14,17 +14,17 @@ Netgear Plus switches (GS308EP and friends) ship a web UI and no SNMP agent. sna
 
 | Protocol | Support |
 |---|---|
-| SNMPv2c | community GET / GETNEXT / GETBULK |
+| SNMPv2c | community GET/GETNEXT/GETBULK |
 | SNMPv3 | USM authPriv (MD5/SHA + DES/AES) |
 | SNMPv1 | not implemented |
-| Traps | SNMPv2c `linkUp` / `linkDown` |
+| Traps | SNMPv2c `linkUp`/`linkDown` |
 
 ## MIB layout
 
 | MIB | OID | Content |
 |---|---|---|
 | SNMPv2-MIB | `1.3.6.1.2.1.1` | system group |
-| IF-MIB | `1.3.6.1.2.1.2` / `.31` | ifEntry + ifXEntry (scraped octets, errors, status) |
+| IF-MIB | `1.3.6.1.2.1.2`/`.31` | ifEntry + ifXEntry (scraped octets, errors, status) |
 | POWER-ETHERNET-MIB | `1.3.6.1.2.1.105` | PoE admin, detection, class, budget |
 
 `sysObjectID` is `1.3.6.1.4.1.4526.100.308`.
