@@ -15,6 +15,41 @@ entries:
           url: https://github.com/kgrubb/snare
       artifacthub.io/prerelease: "false"
     apiVersion: v2
+    appVersion: 1.1.4
+    created: "2026-11-02T14:32:41.832864489Z"
+    description: SNMP facade for Netgear Plus / Easy Smart switches
+    digest: 3b7b3dce00d5c6870e67a2decdf3fd070a105cd9aa07c731a3b6a76ba9d40a64
+    home: https://github.com/kgrubb/snare
+    keywords:
+    - snmp
+    - netgear
+    - monitoring
+    - networking
+    maintainers:
+    - email: 8471701+kgrubb@users.noreply.github.com
+      name: kgrubb
+      url: https://github.com/kgrubb
+    name: snare
+    sources:
+    - https://github.com/kgrubb/snare
+    type: application
+    urls:
+    - snare-1.1.4.tgz
+    version: 1.1.4
+  - annotations:
+      artifacthub.io/category: monitoring
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/images: |
+        - name: snare
+          image: ghcr.io/kgrubb/snare:1.0.1
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: support
+          url: https://github.com/kgrubb/snare/issues
+        - name: source
+          url: https://github.com/kgrubb/snare
+      artifacthub.io/prerelease: "false"
+    apiVersion: v2
     appVersion: 1.1.3
     created: "2026-10-31T05:19:27.553915908Z"
     description: SNMP facade for Netgear Plus / Easy Smart switches
@@ -141,4 +176,4 @@ entries:
     urls:
     - snare-1.1.0.tgz
     version: 1.1.0
-generated: "2026-10-31T05:19:27.553925896Z"
+generated: "2026-11-02T14:32:41.832878454Z"
