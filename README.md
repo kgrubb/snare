@@ -33,7 +33,7 @@ Mirrors what Netgear Smart Managed Pro (for example GS310TP) exposes for the dat
 | MIB | OID | Content |
 |---|---|---|
 | SNMPv2-MIB | `1.3.6.1.2.1.1` | sysDescr, sysObjectID, sysUpTime, sysName, … |
-| IF-MIB | `1.3.6.1.2.1.2` / `.31` | ifTable + ifXTable (octets, errors, oper status) |
+| IF-MIB | `1.3.6.1.2.1.2` / `.31` | ifEntry + ifXEntry. Scraped octets, errors, status. Other counters return 0. |
 | POWER-ETHERNET-MIB | `1.3.6.1.2.1.105` | PoE admin, detection, class, budget |
 
 `sysObjectID` is `1.3.6.1.4.1.4526.100.308` (Netgear enterprise, Plus-facade leaf).

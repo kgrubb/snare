@@ -3,6 +3,7 @@ package agent
 import (
 	"testing"
 
+	"github.com/bingoohuang/gosnmpd"
 	"github.com/kgrubb/snare/internal/config"
 	"github.com/kgrubb/snare/internal/netgear"
 )
@@ -80,6 +81,32 @@ func TestBuildOIDs(t *testing.T) {
 	}
 	if _, ok := byOID[oidIfNumber]; !ok {
 		t.Fatal("missing ifNumber")
+	}
+
+	// ifEntry / ifXEntry columns on port 1
+	wantCols := []string{
+		oidIfEntry + ".4.1", oidIfEntry + ".6.1", oidIfEntry + ".9.1",
+		oidIfEntry + ".11.1", oidIfEntry + ".12.1", oidIfEntry + ".13.1",
+		oidIfEntry + ".15.1", oidIfEntry + ".17.1", oidIfEntry + ".18.1",
+		oidIfEntry + ".19.1", oidIfEntry + ".20.1", oidIfEntry + ".21.1",
+		oidIfXEntry + ".2.1", oidIfXEntry + ".3.1", oidIfXEntry + ".4.1",
+		oidIfXEntry + ".5.1", oidIfXEntry + ".7.1", oidIfXEntry + ".8.1",
+		oidIfXEntry + ".9.1", oidIfXEntry + ".11.1", oidIfXEntry + ".12.1",
+		oidIfXEntry + ".13.1", oidIfXEntry + ".14.1", oidIfXEntry + ".15.1",
+		oidIfXEntry + ".16.1", oidIfXEntry + ".17.1", oidIfXEntry + ".18.1",
+		oidIfXEntry + ".19.1",
+		oidIfTableLastChange, oidIfStackLastChange,
+	}
+	for _, oid := range wantCols {
+		if _, ok := byOID[oid]; !ok {
+			t.Fatalf("missing %s", oid)
+		}
+	}
+	if got := gosnmpd.Asn1IntegerUnwrap(byOID[oidIfEntry+".4.1"]); got != 1500 {
+		t.Fatalf("ifMtu = %d, want 1500", got)
+	}
+	if got := gosnmpd.Asn1Gauge32Unwrap(byOID[oidIfXEntry+".15.1"]); got != 1000 {
+		t.Fatalf("ifHighSpeed = %d, want 1000", got)
 	}
 
 	// sysName prefers config
