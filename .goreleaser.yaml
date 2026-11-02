@@ -37,39 +37,18 @@ release:
   name_template: "snare-{{.Version}}"
   mode: keep-existing
 
-dockers:
-  - image_templates:
-      - "ghcr.io/kgrubb/snare:{{ .Version }}-amd64"
+dockers_v2:
+  - images:
+      - ghcr.io/kgrubb/snare
+    tags:
+      - "{{ .Version }}"
+      - latest
     dockerfile: Dockerfile
-    use: buildx
-    goos: linux
-    goarch: amd64
-    build_flag_templates:
-      - "--platform=linux/amd64"
-      - "--label=org.opencontainers.image.source=https://github.com/kgrubb/snare"
-      - "--label=org.opencontainers.image.licenses=AGPL-3.0-only"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      "org.opencontainers.image.source": "https://github.com/kgrubb/snare"
+      "org.opencontainers.image.licenses": "AGPL-3.0-only"
     extra_files:
       - config.example.yaml
-
-  - image_templates:
-      - "ghcr.io/kgrubb/snare:{{ .Version }}-arm64"
-    dockerfile: Dockerfile
-    use: buildx
-    goos: linux
-    goarch: arm64
-    build_flag_templates:
-      - "--platform=linux/arm64"
-      - "--label=org.opencontainers.image.source=https://github.com/kgrubb/snare"
-      - "--label=org.opencontainers.image.licenses=AGPL-3.0-only"
-    extra_files:
-      - config.example.yaml
-
-docker_manifests:
-  - name_template: "ghcr.io/kgrubb/snare:{{ .Version }}"
-    image_templates:
-      - "ghcr.io/kgrubb/snare:{{ .Version }}-amd64"
-      - "ghcr.io/kgrubb/snare:{{ .Version }}-arm64"
-  - name_template: "ghcr.io/kgrubb/snare:latest"
-    image_templates:
-      - "ghcr.io/kgrubb/snare:{{ .Version }}-amd64"
-      - "ghcr.io/kgrubb/snare:{{ .Version }}-arm64"
