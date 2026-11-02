@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/kgrubb/snare/compare/v1.1.4...v1.2.0) (2026-11-02)
+
+
+### Added
+
+* publish LLDP rem table from declared topology neighbors ([#21](https://github.com/kgrubb/snare/issues/21)) ([6193ed7](https://github.com/kgrubb/snare/commit/6193ed796b890733f6e911fab72e434d59694160))
+
+
+### Fixed
+
+* silence goreleaser dockers deprecation warning ([#20](https://github.com/kgrubb/snare/issues/20)) ([0313d3e](https://github.com/kgrubb/snare/commit/0313d3e6901626fab4ca4e1d187b3f6a0e6c328f))
+
 ## [1.1.4](https://github.com/kgrubb/snare/compare/v1.1.3...v1.1.4) (2026-11-02)
 
 
