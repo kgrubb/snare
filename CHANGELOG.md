@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/kgrubb/snare/compare/v1.1.3...v1.1.4) (2026-11-02)
+
+
+### Fixed
+
+* stub full IF-MIB ifEntry/ifXEntry for NMS multi-GETs ([#18](https://github.com/kgrubb/snare/issues/18)) ([c962f4d](https://github.com/kgrubb/snare/commit/c962f4da19229768902ef907f6fd7b61b58fe50a))
+
 ## [1.1.3](https://github.com/kgrubb/snare/compare/v1.1.2...v1.1.3) (2026-10-31)
 
 
