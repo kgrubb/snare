@@ -6,6 +6,7 @@ import (
 	"github.com/bingoohuang/gosnmpd"
 	"github.com/kgrubb/snare/internal/config"
 	"github.com/kgrubb/snare/internal/netgear"
+	"github.com/kgrubb/snare/internal/topology"
 )
 
 func TestPethDetection(t *testing.T) {
@@ -56,7 +57,10 @@ func TestBuildOIDs(t *testing.T) {
 		},
 	})
 
-	items := buildOIDs(store, cfg)
+	topo := topology.New([]config.Neighbor{{
+		Port: 1, SysName: "peer-a", PortID: "eth0", ChassisID: "peer-a",
+	}})
+	items := buildOIDs(store, cfg, topo)
 	if len(items) == 0 {
 		t.Fatal("expected OID items")
 	}
@@ -108,10 +112,14 @@ func TestBuildOIDs(t *testing.T) {
 	if got := gosnmpd.Asn1Gauge32Unwrap(byOID[oidIfXEntry+".15.1"]); got != 1000 {
 		t.Fatalf("ifHighSpeed = %d, want 1000", got)
 	}
+	if got := gosnmpd.Asn1OctetStringUnwrap(byOID[oidLldpRemEntry+".9.0.1.1"]); got != "peer-a" {
+		t.Fatalf("lldpRemSysName = %q, want peer-a", got)
+	}
 
 	// sysName prefers config
 	cfg.Sys.Name = ""
-	items = buildOIDs(store, cfg)
+	empty := topology.New(nil)
+	items = buildOIDs(store, cfg, empty)
 	for _, it := range items {
 		if it.OID != oidSysName {
 			continue
@@ -127,7 +135,7 @@ func TestBuildOIDs(t *testing.T) {
 
 	store.Set(&netgear.Snapshot{})
 	cfg.Sys.Name = ""
-	items = buildOIDs(store, cfg)
+	items = buildOIDs(store, cfg, empty)
 	for _, it := range items {
 		if it.OID != oidSysName {
 			continue
@@ -140,7 +148,7 @@ func TestBuildOIDs(t *testing.T) {
 	// port beyond snapshot length uses empty port
 	cfg.Switch.Ports = 3
 	store.Set(&netgear.Snapshot{Ports: []netgear.Port{{Index: 1}}})
-	items = buildOIDs(store, cfg)
+	items = buildOIDs(store, cfg, empty)
 	found := false
 	for _, it := range items {
 		if it.OID == oidIfEntry+".8.3" {

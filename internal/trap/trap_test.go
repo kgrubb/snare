@@ -61,7 +61,7 @@ func TestSplitHostPort(t *testing.T) {
 		port    uint16
 		wantErr bool
 	}{
-		{in: "192.168.1.10:162", host: "192.168.1.10", port: 162},
+		{in: "192.0.2.20:162", host: "192.0.2.20", port: 162},
 		{in: "nms.local", host: "nms.local", port: 162},
 		{in: "127.0.0.1:9999", host: "127.0.0.1", port: 9999},
 		{in: "::1", wantErr: true}, // ambiguous without brackets

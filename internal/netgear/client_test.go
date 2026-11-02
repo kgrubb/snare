@@ -21,7 +21,7 @@ func TestNewClient(t *testing.T) {
 		budgetN uint
 	}{
 		{name: "defaults", url: "http://switch.local/", ports: 0, budget: 0, portsN: 8, budgetN: 62},
-		{name: "explicit", url: "http://192.168.1.1", ports: 16, budget: 120, portsN: 16, budgetN: 120},
+		{name: "explicit", url: "http://192.0.2.10", ports: 16, budget: 120, portsN: 16, budgetN: 120},
 		{name: "bad url", url: "://bad", wantErr: true},
 	}
 

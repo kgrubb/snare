@@ -22,6 +22,18 @@ traps:
     - "192.0.2.20:162"
 
 sys:
-  name: "gs308ep"
+  name: "switch-1"
   contact: "ops@example.com"
-  location: "homelab"
+  location: "lab"
+
+# topology.neighbors publishes LLDP-MIB rem rows. Optional snmp fills blank
+# sys_name / sys_desc / chassis_id. Set port_id yourself.
+# topology:
+#   neighbors:
+#     - port: 1
+#       snmp: {address: "192.0.2.1:161", community: "public"}
+#     - port: 2
+#       sys_name: "access-point"
+#       port_id: "eth0"
+#       chassis_id: "aa:bb:cc:dd:ee:ff"
+#       chassis_id_subtype: 4 # macAddress

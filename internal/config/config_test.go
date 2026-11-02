@@ -23,7 +23,7 @@ switch:
   url: http://switch.local
   password: secret
 sys:
-  name: gs308ep
+  name: switch-1
 `,
 			check: func(t *testing.T, c *Config) {
 				t.Helper()
@@ -45,7 +45,7 @@ sys:
 				if c.SNMPv3.AuthProto != "SHA" || c.SNMPv3.PrivProto != "AES" {
 					t.Fatalf("SNMPv3 protos = %s/%s", c.SNMPv3.AuthProto, c.SNMPv3.PrivProto)
 				}
-				if c.Sys.Name != "gs308ep" {
+				if c.Sys.Name != "switch-1" {
 					t.Fatalf("Sys.Name = %q", c.Sys.Name)
 				}
 			},
@@ -57,7 +57,7 @@ listen: ":1161"
 community: lab
 poll: 5s
 switch:
-  url: http://192.168.1.1
+  url: http://192.0.2.10
   password: pw
   ports: 16
   poe_budget_watts: 120
@@ -67,7 +67,7 @@ snmpv3:
   priv_proto: DES
 traps:
   enabled: true
-  targets: ["192.168.1.10:162"]
+  targets: ["192.0.2.20:162"]
 `,
 			check: func(t *testing.T, c *Config) {
 				t.Helper()
@@ -118,6 +118,39 @@ switch:
 			name:    "invalid yaml",
 			yaml:    ":\n  - bad",
 			wantErr: "yaml",
+		},
+		{
+			name: "topology neighbor",
+			yaml: `
+switch:
+  url: http://x
+  password: y
+topology:
+  neighbors:
+    - port: 1
+      snmp:
+        address: 192.0.2.1:161
+`,
+			check: func(t *testing.T, c *Config) {
+				t.Helper()
+				if len(c.Topology.Neighbors) != 1 || c.Topology.Neighbors[0].Port != 1 {
+					t.Fatalf("topology = %+v", c.Topology)
+				}
+			},
+		},
+		{
+			name: "topology bad port",
+			yaml: `
+switch:
+  url: http://x
+  password: y
+  ports: 8
+topology:
+  neighbors:
+    - port: 9
+      sys_name: x
+`,
+			wantErr: "topology.neighbors[0].port must be 1..8",
 		},
 	}
 
