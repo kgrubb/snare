@@ -2,6 +2,7 @@ package agent
 
 import (
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/bingoohuang/gosnmpd"
@@ -23,7 +24,7 @@ func ListenAndServe(cfg *config.Config, store *Store, topo *topology.Table) erro
 		})
 	}
 
-	master := gosnmpd.MasterAgent{
+	master := &gosnmpd.MasterAgent{
 		SecurityConfig: gosnmpd.SecurityConfig{
 			AuthoritativeEngineBoots: 1,
 			Users:                    users,
@@ -33,11 +34,40 @@ func ListenAndServe(cfg *config.Config, store *Store, topo *topology.Table) erro
 			OIDs:         buildOIDs(store, cfg, topo),
 		}},
 	}
-	srv := gosnmpd.NewSNMPServer(master)
-	if err := srv.ListenUDP("udp", cfg.Listen); err != nil {
+	if err := master.ReadyForWork(); err != nil {
+		return fmt.Errorf("snmp agent: %w", err)
+	}
+
+	pc, err := net.ListenPacket("udp", cfg.Listen)
+	if err != nil {
 		return fmt.Errorf("listen %s: %w", cfg.Listen, err)
 	}
-	return srv.ServeForever()
+	defer func() { _ = pc.Close() }()
+	return servePacketConn(pc, master)
+}
+
+// servePacketConn answers each datagram in its own goroutine. gosnmpd.ServeForever
+// is serial, so pipelined NMS walks retry and then fail on Request ID mismatch.
+func servePacketConn(pc net.PacketConn, master *gosnmpd.MasterAgent) error {
+	// shortcut: caps concurrent replies at 64, raise if an NMS pipelines harder
+	sem := make(chan struct{}, 64)
+	buf := make([]byte, 65535)
+	for {
+		n, addr, err := pc.ReadFrom(buf)
+		if err != nil {
+			return err
+		}
+		pkt := append([]byte(nil), buf[:n]...)
+		sem <- struct{}{}
+		go func() {
+			defer func() { <-sem }()
+			out, _ := master.ResponseForBuffer(pkt)
+			if len(out) == 0 {
+				return
+			}
+			_, _ = pc.WriteTo(out, addr)
+		}()
+	}
 }
 
 func authPriv(auth, priv string) (gosnmp.SnmpV3AuthProtocol, gosnmp.SnmpV3PrivProtocol) {
