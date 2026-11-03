@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/kgrubb/snare/compare/v1.2.0...v1.2.1) (2026-11-03)
+
+
+### Fixed
+
+* serve SNMP requests concurrently ([#24](https://github.com/kgrubb/snare/issues/24)) ([184e1d4](https://github.com/kgrubb/snare/commit/184e1d4b78edf110895c42904d77b0b56135cffb))
+
 ## [1.2.0](https://github.com/kgrubb/snare/compare/v1.1.4...v1.2.0) (2026-11-02)
 
 
