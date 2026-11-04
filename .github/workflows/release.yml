@@ -123,7 +123,7 @@ jobs:
 
       - name: Publish charts
         # v1.8.0 fixes unbound latest_tag when skip_packaging is set.
-        uses: helm/chart-releaser-action@v1.8.0
+        uses: helm/chart-releaser-action@v1.9.0
         with:
           charts_dir: charts
           config: cr.yaml
