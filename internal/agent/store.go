@@ -25,6 +25,12 @@ func (s *Store) Get() *netgear.Snapshot {
 	return &netgear.Snapshot{}
 }
 
+// Fresh reports whether a scrape has landed within maxAge.
+func (s *Store) Fresh(maxAge time.Duration) bool {
+	v := s.cur.Load()
+	return v != nil && time.Since(v.FetchedAt) <= maxAge
+}
+
 func (s *Store) UpTimeTicks() uint32 {
 	return uint32(time.Since(s.started).Milliseconds() / 10)
 }

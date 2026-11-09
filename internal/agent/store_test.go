@@ -11,6 +11,9 @@ func TestStoreGetSetAndUptime(t *testing.T) {
 	t.Parallel()
 
 	s := NewStore()
+	if s.Fresh(time.Hour) {
+		t.Fatal("no scrape yet is not fresh")
+	}
 	empty := s.Get()
 	if empty == nil || len(empty.Ports) != 0 {
 		t.Fatalf("empty get = %+v", empty)
@@ -21,6 +24,14 @@ func TestStoreGetSetAndUptime(t *testing.T) {
 	got := s.Get()
 	if got.Model != "GS308EP" || len(got.Ports) != 1 || !got.Ports[0].Up {
 		t.Fatalf("get = %+v", got)
+	}
+
+	if s.Fresh(time.Minute) {
+		t.Fatal("a snapshot without a fetch time is not fresh")
+	}
+	s.Set(&netgear.Snapshot{FetchedAt: time.Now()})
+	if !s.Fresh(time.Minute) {
+		t.Fatal("a just-fetched snapshot is fresh")
 	}
 
 	time.Sleep(15 * time.Millisecond)

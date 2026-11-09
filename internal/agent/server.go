@@ -43,12 +43,13 @@ func ListenAndServe(cfg *config.Config, store *Store, topo *topology.Table) erro
 		return fmt.Errorf("listen %s: %w", cfg.Listen, err)
 	}
 	defer func() { _ = pc.Close() }()
-	return servePacketConn(pc, master)
+	// Stale or missing data would read as zero counters, so stay silent instead.
+	return servePacketConn(pc, master, func() bool { return store.Fresh(3 * cfg.Poll) })
 }
 
 // servePacketConn answers each datagram in its own goroutine. gosnmpd.ServeForever
 // is serial, so pipelined NMS walks retry and then fail on Request ID mismatch.
-func servePacketConn(pc net.PacketConn, master *gosnmpd.MasterAgent) error {
+func servePacketConn(pc net.PacketConn, master *gosnmpd.MasterAgent, ready func() bool) error {
 	// shortcut: caps concurrent replies at 64, raise if an NMS pipelines harder
 	sem := make(chan struct{}, 64)
 	buf := make([]byte, 65535)
@@ -56,6 +57,9 @@ func servePacketConn(pc net.PacketConn, master *gosnmpd.MasterAgent) error {
 		n, addr, err := pc.ReadFrom(buf)
 		if err != nil {
 			return err
+		}
+		if !ready() {
+			continue
 		}
 		pkt := append([]byte(nil), buf[:n]...)
 		sem <- struct{}{}

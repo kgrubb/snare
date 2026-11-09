@@ -47,43 +47,18 @@ func TestConcurrentGets(t *testing.T) {
 	t.Parallel()
 
 	var inflight, maxInflight atomic.Int32
-	master := &gosnmpd.MasterAgent{
-		SecurityConfig: gosnmpd.SecurityConfig{
-			AuthoritativeEngineBoots: 1,
-			AuthoritativeEngineID:    gosnmpd.SNMPEngineID{EngineIDData: "snare-test"},
-		},
-		SubAgents: []*gosnmpd.SubAgent{{
-			CommunityIDs: []string{"public"},
-			OIDs: []*gosnmpd.PDUValueControlItem{{
-				OID:  "1.3.6.1.2.1.1.5.0",
-				Type: slayer.OctetString,
-				OnGet: func() (any, error) {
-					n := inflight.Add(1)
-					for {
-						old := maxInflight.Load()
-						if n <= old || maxInflight.CompareAndSwap(old, n) {
-							break
-						}
-					}
-					time.Sleep(40 * time.Millisecond)
-					inflight.Add(-1)
-					return gosnmpd.Asn1OctetStringWrap("gs308ep"), nil
-				},
-			}},
-		}},
-	}
-	if err := master.ReadyForWork(); err != nil {
-		t.Fatal(err)
-	}
-
-	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = pc.Close() })
-	go func() { _ = servePacketConn(pc, master) }()
-
-	host, port := mustHostPort(t, pc.LocalAddr().String())
+	host, port := startAgent(t, func() (any, error) {
+		n := inflight.Add(1)
+		for {
+			old := maxInflight.Load()
+			if n <= old || maxInflight.CompareAndSwap(old, n) {
+				break
+			}
+		}
+		time.Sleep(40 * time.Millisecond)
+		inflight.Add(-1)
+		return gosnmpd.Asn1OctetStringWrap("gs308ep"), nil
+	}, func() bool { return true })
 	const n = 12
 	var wg sync.WaitGroup
 	errCh := make(chan error, n)
@@ -120,6 +95,60 @@ func TestConcurrentGets(t *testing.T) {
 	if maxInflight.Load() < 2 {
 		t.Fatalf("max inflight handlers = %d, want concurrent serve", maxInflight.Load())
 	}
+}
+
+// Without switch data a poller must see an unreachable agent, not zero counters.
+func TestNoAnswerWithoutData(t *testing.T) {
+	t.Parallel()
+
+	var ready atomic.Bool
+	host, port := startAgent(t, func() (any, error) {
+		return gosnmpd.Asn1OctetStringWrap("gs308ep"), nil
+	}, ready.Load)
+	c := &gosnmp.GoSNMP{
+		Target: host, Port: port, Community: "public",
+		Version: gosnmp.Version2c, Timeout: 300 * time.Millisecond, Retries: 0,
+	}
+	if err := c.Connect(); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = c.Conn.Close() })
+	if _, err := c.Get([]string{"1.3.6.1.2.1.1.5.0"}); err == nil {
+		t.Fatal("answered without switch data")
+	}
+	ready.Store(true)
+	if _, err := c.Get([]string{"1.3.6.1.2.1.1.5.0"}); err != nil {
+		t.Fatalf("no answer with switch data: %v", err)
+	}
+}
+
+// startAgent serves sysName via onGet on a loopback port while ready reports true.
+func startAgent(t *testing.T, onGet func() (any, error), ready func() bool) (string, uint16) {
+	t.Helper()
+	master := &gosnmpd.MasterAgent{
+		SecurityConfig: gosnmpd.SecurityConfig{
+			AuthoritativeEngineBoots: 1,
+			AuthoritativeEngineID:    gosnmpd.SNMPEngineID{EngineIDData: "snare-test"},
+		},
+		SubAgents: []*gosnmpd.SubAgent{{
+			CommunityIDs: []string{"public"},
+			OIDs: []*gosnmpd.PDUValueControlItem{{
+				OID:   "1.3.6.1.2.1.1.5.0",
+				Type:  slayer.OctetString,
+				OnGet: onGet,
+			}},
+		}},
+	}
+	if err := master.ReadyForWork(); err != nil {
+		t.Fatal(err)
+	}
+	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = pc.Close() })
+	go func() { _ = servePacketConn(pc, master, ready) }()
+	return mustHostPort(t, pc.LocalAddr().String())
 }
 
 func mustHostPort(t *testing.T, addr string) (string, uint16) {
