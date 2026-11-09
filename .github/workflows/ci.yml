@@ -79,3 +79,4 @@ jobs:
         with:
           directory: charts/snare
           config: .kube-linter.yaml
+          version: v0.8.1
