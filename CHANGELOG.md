@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.2](https://github.com/kgrubb/snare/compare/v1.2.1...v1.2.2) (2026-11-09)
+
+
+### Fixed
+
+* stop answering SNMP when there is no fresh switch data ([#28](https://github.com/kgrubb/snare/issues/28)) ([6a11669](https://github.com/kgrubb/snare/commit/6a11669ddde4bc11514a96d51eedade7bece2e3f))
+
+
+### Dependencies
+
+* **deps:** bump helm/chart-releaser-action ([#26](https://github.com/kgrubb/snare/issues/26)) ([19bb607](https://github.com/kgrubb/snare/commit/19bb6076205da06dc6895e20cc2059541bb0f340))
+
 ## [1.2.1](https://github.com/kgrubb/snare/compare/v1.2.0...v1.2.1) (2026-11-03)
 
 
