@@ -39,3 +39,35 @@ func TestStoreGetSetAndUptime(t *testing.T) {
 		t.Fatal("uptime ticks should advance")
 	}
 }
+
+func TestStoreResetTicks(t *testing.T) {
+	t.Parallel()
+
+	s := NewStore()
+	set := func(rx, tx uint64) {
+		s.Set(&netgear.Snapshot{Ports: []netgear.Port{{Index: 1, RxBytes: rx, TxBytes: tx}}})
+	}
+
+	set(1000, 2000)
+	if got := s.Get().Ports[0].ResetTicks; got != 0 {
+		t.Fatalf("first scrape discontinuity = %d, want 0", got)
+	}
+
+	time.Sleep(15 * time.Millisecond)
+	set(0xFFFFFFFF<<32|4288590000, 2500)
+	if p := s.Get().Ports[0]; p.RxBytes != 1000 || p.TxBytes != 2500 {
+		t.Fatalf("negative reading served rx=%d tx=%d, want 1000 2500", p.RxBytes, p.TxBytes)
+	}
+
+	set(10, 2600)
+	disc := s.Get().Ports[0].ResetTicks
+	if disc == 0 || disc > s.UpTimeTicks() {
+		t.Fatalf("reset discontinuity = %d, want in (0, %d]", disc, s.UpTimeTicks())
+	}
+
+	time.Sleep(15 * time.Millisecond)
+	set(20, 2700)
+	if got := s.Get().Ports[0].ResetTicks; got != disc {
+		t.Fatalf("discontinuity moved to %d on a normal scrape, want %d", got, disc)
+	}
+}
