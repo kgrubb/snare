@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.3](https://github.com/kgrubb/snare/compare/v1.2.2...v1.2.3) (2026-11-10)
+
+
+### Fixed
+
+* flag counter resets with ifCounterDiscontinuityTime ([#32](https://github.com/kgrubb/snare/issues/32)) ([967889c](https://github.com/kgrubb/snare/commit/967889c7406635885e85afc4f04a8d526a6984f9))
+* report negative gs3xx counters as 0 ([#30](https://github.com/kgrubb/snare/issues/30)) ([e30f96c](https://github.com/kgrubb/snare/commit/e30f96cd5efaad09d6778b1d6e5a06bb0c2c2795))
+
 ## [1.2.2](https://github.com/kgrubb/snare/compare/v1.2.1...v1.2.2) (2026-11-09)
 
 
