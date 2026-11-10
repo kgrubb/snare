@@ -154,7 +154,7 @@ func buildOIDs(store *Store, cfg *config.Config, topo *topology.Table) []*gosnmp
 			intOID(fmt.Sprintf("%s.16.%d", oidIfXEntry, idx), func() int { return 2 }), // false
 			intOID(fmt.Sprintf("%s.17.%d", oidIfXEntry, idx), func() int { return 1 }), // true
 			strOID(fmt.Sprintf("%s.18.%d", oidIfXEntry, idx), func() string { return "" }),
-			ticksOID(fmt.Sprintf("%s.19.%d", oidIfXEntry, idx), func() uint32 { return 0 }),
+			ticksOID(fmt.Sprintf("%s.19.%d", oidIfXEntry, idx), func() uint32 { return port().ResetTicks }),
 			// POWER-ETHERNET-MIB pethPsePortTable index group=1,port=N
 			intOID(fmt.Sprintf("%s.3.1.%d", oidPethPseEntry, idx), func() int {
 				if port().PoEAdmin {

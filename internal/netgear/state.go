@@ -19,6 +19,7 @@ type Port struct {
 	RxBytes    uint64
 	TxBytes    uint64
 	CRCErrors  uint64
+	ResetTicks uint32 // sysUpTime of the last counter reset (ifCounterDiscontinuityTime)
 	PoEAdmin   bool
 	PoEStatus  string
 	PoEClass   int
