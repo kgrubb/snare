@@ -151,6 +151,9 @@ func TestGS3xxUint(t *testing.T) {
 		{"1", "0", 1 << 32},
 		{"1", "5", (1 << 32) | 5},
 		{" ", "7", 7},
+		// After a reboot the firmware briefly reports a negative 64-bit value.
+		{"4294967295", "4288590000", 0},
+		{"2147483648", "0", 0},
 	}
 
 	for _, tt := range tests {

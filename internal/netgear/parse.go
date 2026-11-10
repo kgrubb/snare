@@ -133,10 +133,17 @@ func parsePortStatistics(body string, ports []Port) {
 	}
 }
 
+// gs3xxUint joins the two 32-bit halves of a GS3xx counter. Right after a
+// reboot the firmware can report a negative 64-bit value. That reads as a
+// counter near 2^64, so it is reported as 0 like the rest of a fresh boot.
 func gs3xxUint(hi, lo string) uint64 {
 	h, _ := strconv.ParseUint(strings.TrimSpace(hi), 10, 64)
 	l, _ := strconv.ParseUint(strings.TrimSpace(lo), 10, 64)
-	return h<<32 | l
+	v := h<<32 | l
+	if int64(v) < 0 {
+		return 0
+	}
+	return v
 }
 
 func parsePoEConfig(body string, ports []Port) {
