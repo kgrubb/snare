@@ -6,7 +6,7 @@ require (
 	github.com/bingoohuang/gosnmpd v0.0.0-20221104032659-a9fd767b3eb9
 	github.com/gosnmp/gosnmp v1.47.0
 	github.com/slayercat/gosnmp v1.24.1
-	github.com/spf13/pflag v1.0.10
+	github.com/spf13/pflag v1.1.0
 	golang.org/x/net v0.62.0
 	gopkg.in/yaml.v3 v3.0.1
 )
