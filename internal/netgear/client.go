@@ -61,7 +61,8 @@ func (c *Client) Poll() (*Snapshot, error) {
 		return nil, err
 	}
 	// SID can outlive the server session. Clear it before re-login so a failed POST cannot look like success.
-	if parseRand(dash) != "" {
+	// A login page has no rand field, so title is the canary (e.g. "Redirect to Login").
+	if parseRand(dash) != "" || loginPage(dash) {
 		c.clearSID()
 		if err := c.login(); err != nil {
 			return nil, err
@@ -70,6 +71,9 @@ func (c *Client) Poll() (*Snapshot, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+	if parseRand(dash) != "" || loginPage(dash) {
+		return nil, fmt.Errorf("login failed: still on login page")
 	}
 	name, serial, fw := parseMetadata(dash)
 	ports := parsePortStatus(dash, c.ports)

@@ -50,6 +50,7 @@ func TestParseTitleModel(t *testing.T) {
 		want string
 	}{
 		{name: "present", body: `<html><head><title> GS308EP </title></head></html>`, want: "GS308EP"},
+		{name: "login", body: `<html><head><title>Redirect to Login</title></head></html>`, want: "Redirect to Login"},
 		{name: "missing", body: `<html><body>no title</body></html>`, want: ""},
 	}
 
@@ -61,6 +62,17 @@ func TestParseTitleModel(t *testing.T) {
 				t.Fatalf("parseTitleModel = %q, want %q", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestLoginPage(t *testing.T) {
+	t.Parallel()
+
+	if !loginPage(`<html><head><title>Redirect to Login</title></head></html>`) {
+		t.Fatal("login title should be a login page")
+	}
+	if loginPage(`<html><head><title>GS308EP</title></head></html>`) {
+		t.Fatal("dashboard title should not be a login page")
 	}
 }
 
@@ -151,6 +163,10 @@ func TestGS3xxUint(t *testing.T) {
 		{"1", "0", 1 << 32},
 		{"1", "5", (1 << 32) | 5},
 		{" ", "7", 7},
+		// Plus firmware sign-extends; 2^64-n is the magnitude n, not 0.
+		{"4294967295", "4290547680", 4419616},
+		{"4294967295", "4288590000", 6377296},
+		{"2147483648", "0", 0},
 	}
 
 	for _, tt := range tests {

@@ -16,7 +16,8 @@ func NewStore() *Store {
 	return &Store{started: time.Now()}
 }
 
-// GS3xx firmware sends a negative reading right after a reboot, so keep the last value.
+// A reboot drops counters to 0 while sysUpTime keeps going. Mark that so
+// pollers drop the delta (RFC 2863 ifCounterDiscontinuityTime).
 func (s *Store) Set(snap *netgear.Snapshot) {
 	prev := s.Get()
 	for i := range snap.Ports {
@@ -26,18 +27,7 @@ func (s *Store) Set(snap *netgear.Snapshot) {
 			old = prev.Ports[i]
 		}
 		p.ResetTicks = old.ResetTicks
-		reset := false
-		check := func(cur *uint64, last uint64) {
-			if int64(*cur) < 0 {
-				*cur = last
-			} else if *cur < last {
-				reset = true
-			}
-		}
-		check(&p.RxBytes, old.RxBytes)
-		check(&p.TxBytes, old.TxBytes)
-		check(&p.CRCErrors, old.CRCErrors)
-		if reset {
+		if p.RxBytes < old.RxBytes || p.TxBytes < old.TxBytes || p.CRCErrors < old.CRCErrors {
 			p.ResetTicks = s.UpTimeTicks()
 		}
 	}
