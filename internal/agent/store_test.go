@@ -54,9 +54,9 @@ func TestStoreResetTicks(t *testing.T) {
 	}
 
 	time.Sleep(15 * time.Millisecond)
-	set(0xFFFFFFFF<<32|4288590000, 2500)
-	if p := s.Get().Ports[0]; p.RxBytes != 1000 || p.TxBytes != 2500 {
-		t.Fatalf("negative reading served rx=%d tx=%d, want 1000 2500", p.RxBytes, p.TxBytes)
+	set(4419616, 2500)
+	if p := s.Get().Ports[0]; p.RxBytes != 4419616 || p.ResetTicks != 0 {
+		t.Fatalf("recovered counter served rx=%d disc=%d, want 4419616 0", p.RxBytes, p.ResetTicks)
 	}
 
 	set(10, 2600)

@@ -199,6 +199,73 @@ func TestClientLoginFailures(t *testing.T) {
 		}
 	})
 
+	t.Run("login page without rand is not a snapshot", func(t *testing.T) {
+		t.Parallel()
+		mux := http.NewServeMux()
+		mux.HandleFunc("/login.cgi", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				http.SetCookie(w, &http.Cookie{Name: "SID", Value: "ok"})
+			}
+			_, _ = w.Write([]byte(`<html><head><title>Redirect to Login</title></head></html>`))
+		})
+		mux.HandleFunc("/dashboard.cgi", func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`<html><head><title>Redirect to Login</title></head></html>`))
+		})
+		mux.HandleFunc("/portStatistics.cgi", func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`<html></html>`))
+		})
+		srv := httptest.NewServer(mux)
+		t.Cleanup(srv.Close)
+		c, err := NewClient(srv.URL, "pw", 1, 62)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := c.Poll(); err == nil {
+			t.Fatal("expected poll failure on a login page")
+		}
+	})
+
+	t.Run("relogin when dashboard is login page", func(t *testing.T) {
+		t.Parallel()
+		logins := 0
+		authed := false
+		mux := http.NewServeMux()
+		mux.HandleFunc("/login.cgi", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				_, _ = w.Write([]byte(`<input id='rand' value='1'>`))
+				return
+			}
+			logins++
+			authed = true
+			http.SetCookie(w, &http.Cookie{Name: "SID", Value: "ok"})
+		})
+		mux.HandleFunc("/dashboard.cgi", func(w http.ResponseWriter, r *http.Request) {
+			if !authed {
+				_, _ = w.Write([]byte(`<html><head><title>Redirect to Login</title></head></html>`))
+				return
+			}
+			_, _ = w.Write([]byte(`<html><head><title>GS308EP</title></head><body><span id="switch_name">lab</span></body></html>`))
+		})
+		mux.HandleFunc("/portStatistics.cgi", func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`<html></html>`))
+		})
+		srv := httptest.NewServer(mux)
+		t.Cleanup(srv.Close)
+		c, err := NewClient(srv.URL, "pw", 1, 62)
+		if err != nil {
+			t.Fatal(err)
+		}
+		base, _ := url.Parse(srv.URL)
+		c.http.Jar.SetCookies(base, []*http.Cookie{{Name: "SID", Value: "stale"}})
+		authed = false
+		if _, err := c.Poll(); err != nil {
+			t.Fatal(err)
+		}
+		if logins != 1 {
+			t.Fatalf("logins = %d, want 1", logins)
+		}
+	})
+
 	t.Run("stale sid does not mask failed relogin", func(t *testing.T) {
 		t.Parallel()
 		mux := http.NewServeMux()

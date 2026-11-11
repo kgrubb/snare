@@ -1,6 +1,7 @@
 package netgear
 
 import (
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -53,6 +54,10 @@ func parseTitleModel(body string) string {
 		}
 	}
 	return ""
+}
+
+func loginPage(body string) bool {
+	return strings.Contains(strings.ToLower(parseTitleModel(body)), "login")
 }
 
 func afterLabel(body, label string) string {
@@ -136,7 +141,21 @@ func parsePortStatistics(body string, ports []Port) {
 func gs3xxUint(hi, lo string) uint64 {
 	h, _ := strconv.ParseUint(strings.TrimSpace(hi), 10, 64)
 	l, _ := strconv.ParseUint(strings.TrimSpace(lo), 10, 64)
-	return h<<32 | l
+	return gs3xxCounter(h<<32 | l)
+}
+
+// Plus firmware sign-extends a 32-bit counter (high word 0xFFFFFFFF). Packed
+// into Counter64 that is 2^64-n, so undo the sign bit and keep the magnitude.
+// shortcut: treats bit 63 as a sign bit, revisit if a GS3xx grows a real 64-bit counter
+func gs3xxCounter(v uint64) uint64 {
+	if v < 1<<63 {
+		return v
+	}
+	n := int64(v)
+	if n == math.MinInt64 {
+		return 0
+	}
+	return uint64(-n)
 }
 
 func parsePoEConfig(body string, ports []Port) {
