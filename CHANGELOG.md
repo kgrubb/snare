@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.4](https://github.com/kgrubb/snare/compare/v1.2.3...v1.2.4) (2026-11-11)
+
+
+### Fixed
+
+* skip login-page scrapes and decode signed gs3xx counters ([#33](https://github.com/kgrubb/snare/issues/33)) ([7eb67cf](https://github.com/kgrubb/snare/commit/7eb67cf70f9cf9a072d0b8d515a3296bf6affe03))
+
 ## [1.2.3](https://github.com/kgrubb/snare/compare/v1.2.2...v1.2.3) (2026-11-10)
 
 
