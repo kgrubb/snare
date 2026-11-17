@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.5](https://github.com/kgrubb/snare/compare/v1.2.4...v1.2.5) (2026-11-17)
+
+
+### Dependencies
+
+* **deps:** bump github.com/spf13/pflag ([#35](https://github.com/kgrubb/snare/issues/35)) ([a067f84](https://github.com/kgrubb/snare/commit/a067f845c0ea3c19393eb2377d41ca915a7445a1))
+
 ## [1.2.4](https://github.com/kgrubb/snare/compare/v1.2.3...v1.2.4) (2026-11-11)
 
 
