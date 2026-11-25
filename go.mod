@@ -7,7 +7,7 @@ require (
 	github.com/gosnmp/gosnmp v1.47.0
 	github.com/slayercat/gosnmp v1.24.1
 	github.com/spf13/pflag v1.1.0
-	golang.org/x/net v0.62.0
+	golang.org/x/net v0.63.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -19,5 +19,5 @@ require (
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 )
